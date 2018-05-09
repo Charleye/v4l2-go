@@ -36,19 +36,20 @@ int main() {
 	printf("package main\n\n");
 
 	printf("const (\n");
-	printf("\toffset_format_type = %llu\n", (long long unsigned) offsetof(struct v4l2_format, type));
-	printf("\toffset_streamparm_type  = %llu\n", (long long unsigned) offsetof(struct v4l2_streamparm, type));
-	printf("\toffset_requestbuffers_type   = %llu\n", (long long unsigned) offsetof(struct v4l2_requestbuffers, type));
-	printf("\toffset_buffer_type      = %llu\n", (long long unsigned) offsetof(struct v4l2_buffer, type));
-	printf("\toffset_cropcap_type        = %llu\n", (long long unsigned) offsetof(struct v4l2_cropcap, type));
-	printf("\toffset_crop_type = %llu\n", (long long unsigned) offsetof(struct v4l2_crop, type));
-	printf("\toffset_fmtdesc_type        = %llu\n", (long long unsigned) offsetof(struct v4l2_fmtdesc, type));
-	printf("\toffset_frmsizeenum_type        = %llu\n", (long long unsigned) offsetof(struct v4l2_frmsizeenum, type));
-	printf("\toffset_frmivalenum_type        = %llu\n", (long long unsigned) offsetof(struct v4l2_frmivalenum, type));
+	printf("\toffset_format_type            = %llu\n", (long long unsigned) offsetof(struct v4l2_format, type));
+	printf("\toffset_streamparm_type        = %llu\n", (long long unsigned) offsetof(struct v4l2_streamparm, type));
+	printf("\toffset_requestbuffers_type    = %llu\n", (long long unsigned) offsetof(struct v4l2_requestbuffers, type));
+	printf("\toffset_buffer_type            = %llu\n", (long long unsigned) offsetof(struct v4l2_buffer, type));
+	printf("\toffset_cropcap_type           = %llu\n", (long long unsigned) offsetof(struct v4l2_cropcap, type));
+	printf("\toffset_crop_type              = %llu\n", (long long unsigned) offsetof(struct v4l2_crop, type));
+	printf("\toffset_fmtdesc_type           = %llu\n", (long long unsigned) offsetof(struct v4l2_fmtdesc, type));
+	printf("\toffset_frmsizeenum_type       = %llu\n", (long long unsigned) offsetof(struct v4l2_frmsizeenum, type));
+	printf("\toffset_frmivalenum_type       = %llu\n", (long long unsigned) offsetof(struct v4l2_frmivalenum, type));
 	printf("\toffset_queryctrl_type         = %llu\n", (long long unsigned) offsetof(struct v4l2_queryctrl, type));
-	printf("\toffset_input_type         = %llu\n", (long long unsigned) offsetof(struct v4l2_input, type));
-	printf("\toffset_output_type         = %llu\n", (long long unsigned) offsetof(struct v4l2_output, type));
-	printf("\toffset_selection_type    = %llu\n", (long long unsigned) offsetof(struct v4l2_selection, type));
+	printf("\toffset_querymenu_union        = %llu\n", (long long unsigned) offsetof(struct v4l2_querymenu, name));
+	printf("\toffset_input_type             = %llu\n", (long long unsigned) offsetof(struct v4l2_input, type));
+	printf("\toffset_output_type            = %llu\n", (long long unsigned) offsetof(struct v4l2_output, type));
+	printf("\toffset_selection_type         = %llu\n", (long long unsigned) offsetof(struct v4l2_selection, type));
 	printf(")\n\n");
 
 	return 0;

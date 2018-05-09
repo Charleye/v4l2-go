@@ -12,13 +12,15 @@ import (
 )
 
 const (
-	VIDIOC_QUERYCAP = C.VIDIOC_QUERYCAP // Query device capabilities
-	VIDIOC_ENUM_FMT = C.VIDIOC_ENUM_FMT // Enumerate image formats
-	VIDIOC_G_FMT    = C.VIDIOC_G_FMT    // Get or set the data format, try a format
-	VIDIOC_S_FMT    = C.VIDIOC_S_FMT
-	VIDIOC_TRY_FMT  = C.VIDIOC_TRY_FMT
-	VIDIOC_G_CTRL   = C.VIDIOC_G_CTRL
-	VIDIOC_S_CTRL   = C.VIDIOC_S_CTRL
+	VIDIOC_QUERYCAP  = C.VIDIOC_QUERYCAP // Query device capabilities
+	VIDIOC_ENUM_FMT  = C.VIDIOC_ENUM_FMT // Enumerate image formats
+	VIDIOC_G_FMT     = C.VIDIOC_G_FMT    // Get or set the data format, try a format
+	VIDIOC_S_FMT     = C.VIDIOC_S_FMT
+	VIDIOC_TRY_FMT   = C.VIDIOC_TRY_FMT
+	VIDIOC_G_CTRL    = C.VIDIOC_G_CTRL
+	VIDIOC_S_CTRL    = C.VIDIOC_S_CTRL
+	VIDIOC_QUERYCTRL = C.VIDIOC_QUERYCTRL
+	VIDIOC_QUERYMENU = C.VIDIOC_QUERYMENU //  Enumerate controls and menu control items
 )
 
 // v4l2 buffer type

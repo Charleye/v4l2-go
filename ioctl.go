@@ -305,3 +305,77 @@ func IoctlSetCtrl(fd int, argp *V4L2_Control) error {
 	}
 	return nil
 }
+
+type V4L2_Queryctrl struct {
+	ID           uint32
+	Type         uint32
+	Name         string
+	Minimum      int32
+	Maximum      int32
+	Step         int32
+	DefaultValue int32
+	Flags        uint32
+}
+
+func (c *V4L2_Queryctrl) set(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_queryctrl)(ptr)
+	p.id = C.__u32(c.ID)
+}
+
+func (c *V4L2_Queryctrl) get(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_queryctrl)(ptr)
+
+	// due to type field, it is keyword in golang
+	tmp := (*uint32)(unsafe.Pointer(
+		uintptr(ptr) + offset_queryctrl_type))
+	c.Type = *tmp
+
+	c.Name = C.GoString((*C.char)(unsafe.Pointer(&p.name[0])))
+	c.Minimum = int32(p.minimum)
+	c.Maximum = int32(p.maximum)
+	c.Step = int32(p.step)
+	c.DefaultValue = int32(p.default_value)
+	c.Flags = uint32(p.flags)
+}
+
+func IoctlQueryCtrl(fd int, argp *V4L2_Queryctrl) error {
+	var qc C.struct_v4l2_queryctrl
+	p := unsafe.Pointer(&qc)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_QUERYCTRL, p)
+	if err != nil {
+		return err
+	}
+	argp.get(p)
+	return nil
+}
+
+type V4L2_Querymenu struct {
+	ID    uint32
+	Index uint32
+	union interface{}
+}
+
+func (m *V4L2_Querymenu) set(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_querymenu)(ptr)
+	p.id = C.__u32(m.ID)
+	p.index = C.__u32(m.Index)
+}
+
+func (m *V4L2_Querymenu) get(ptr unsafe.Pointer) {
+	// due to anonymous union, cannot get it's field pointer
+	p := unsafe.Pointer(uintptr(ptr) + offset_querymenu_union)
+	m.union = C.GoBytes(p, 32)
+}
+
+func IoctlQueryMenu(fd int, argp *V4L2_Querymenu) error {
+	var vm C.struct_v4l2_querymenu
+	p := unsafe.Pointer(&vm)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_QUERYMENU, p)
+	if err != nil {
+		return err
+	}
+	argp.get(p)
+	return nil
+}
