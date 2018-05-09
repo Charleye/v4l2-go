@@ -2,8 +2,9 @@
 Encapsulate userspace V4L2 API with golang
 
 # usage
+```bash
 gcc -o arch-go arch-go.c
-
-./arch-go >amd64.go 
+./arch-go > amd64.go 
+```
 
 
