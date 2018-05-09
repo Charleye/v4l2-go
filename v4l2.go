@@ -17,6 +17,8 @@ const (
 	VIDIOC_G_FMT    = C.VIDIOC_G_FMT    // Get or set the data format, try a format
 	VIDIOC_S_FMT    = C.VIDIOC_S_FMT
 	VIDIOC_TRY_FMT  = C.VIDIOC_TRY_FMT
+	VIDIOC_G_CTRL   = C.VIDIOC_G_CTRL
+	VIDIOC_S_CTRL   = C.VIDIOC_S_CTRL
 )
 
 // v4l2 buffer type

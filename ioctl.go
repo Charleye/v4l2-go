@@ -6,7 +6,6 @@ package main
 import "C"
 
 import (
-	"fmt"
 	"log"
 	"unsafe"
 )
@@ -124,18 +123,29 @@ func (f *V4L2_Plane_Pix_Format) set(ptr unsafe.Pointer) {
 }
 
 func (f *V4L2_Plane_Pix_Format) get(ptr unsafe.Pointer) {
-	fmt.Printf("V4L2_Plane_Pix_Format get pointer %p\n", ptr)
 	p := (*C.struct_v4l2_plane_pix_format)(ptr)
 	f.SizeImage = uint32(p.sizeimage)
 	f.BytesPerLine = uint32(p.bytesperline)
 }
 
 func (f *V4L2_Pix_Format_Mplane) set(ptr unsafe.Pointer) {
-	fmt.Printf("V4L2_Pix_Format_Mplane set %p\n", ptr)
+	p := (*C.struct_v4l2_pix_format_mplane)(ptr)
+	p.width = C.__u32(f.Width)
+	p.height = C.__u32(f.Height)
+	p.pixelformat = C.__u32(f.PixelFormat)
+	p.field = C.__u32(f.Field)
+	p.colorspace = C.__u32(f.ColorSpace)
+	p.num_planes = C.__u8(f.NumPlanes)
+	for i := 0; i < int(f.NumPlanes); i++ {
+		f.PlaneFmt[i].set(unsafe.Pointer(&p.plane_fmt[i]))
+	}
+	p.flags = C.__u8(f.Flags)
+	p.ycbcr_enc = C.__u8(f.YcbcrEnc)
+	p.quantization = C.__u8(f.Quantization)
+	p.xfer_func = C.__u8(f.XferFunc)
 }
 
 func (f *V4L2_Pix_Format_Mplane) get(ptr unsafe.Pointer) {
-	fmt.Printf("V4L2_Pix_Format_Mplane get %p\n", ptr)
 	p := (*C.struct_v4l2_pix_format_mplane)(ptr)
 	f.Width = uint32(p.width)
 	f.Height = uint32(p.height)
@@ -146,7 +156,10 @@ func (f *V4L2_Pix_Format_Mplane) get(ptr unsafe.Pointer) {
 	for i := 0; i < int(f.NumPlanes); i++ {
 		f.PlaneFmt[i].get(unsafe.Pointer(&p.plane_fmt[i]))
 	}
-
+	f.Flags = uint8(p.flags)
+	f.YcbcrEnc = uint8(p.ycbcr_enc)
+	f.Quantization = uint8(p.quantization)
+	f.XferFunc = uint8(p.xfer_func)
 }
 
 func (f *V4L2_Pix_Format) set(ptr unsafe.Pointer) {
@@ -250,5 +263,45 @@ func IoctlTryFmt(fd int, argp *V4L2_Format) error {
 		return err
 	}
 	argp.get(p)
+	return nil
+}
+
+type V4L2_Control struct {
+	ID    uint32
+	Value int32
+}
+
+func (c *V4L2_Control) set(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_control)(ptr)
+	p.id = C.__u32(c.ID)
+	p.value = C.__s32(c.Value)
+}
+
+func (c *V4L2_Control) get(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_control)(ptr)
+	c.ID = uint32(p.id)
+	c.Value = int32(p.value)
+}
+
+func IoctlGetCtrl(fd int, argp *V4L2_Control) error {
+	var vc C.struct_v4l2_control
+	p := unsafe.Pointer(&vc)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_G_CTRL, p)
+	if err != nil {
+		return err
+	}
+	argp.get(p)
+	return nil
+}
+
+func IoctlSetCtrl(fd int, argp *V4L2_Control) error {
+	var vc C.struct_v4l2_control
+	p := unsafe.Pointer(&vc)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_S_CTRL, p)
+	if err != nil {
+		return err
+	}
 	return nil
 }
