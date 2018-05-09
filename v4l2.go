@@ -48,6 +48,20 @@ const (
 	V4L2_PIX_FMT_NV21M = C.V4L2_PIX_FMT_NV21M
 )
 
+const (
+	/* Query flags, to be ORed with the control ID */
+	V4L2_CTRL_FLAG_NEXT_CTRL = C.V4L2_CTRL_FLAG_NEXT_CTRL
+
+	/*  Control flags  */
+	V4L2_CTRL_FLAG_DISABLED = C.V4L2_CTRL_FLAG_DISABLED
+)
+
+// control type
+const (
+	V4L2_CTRL_TYPE_MENU         = C.V4L2_CTRL_TYPE_MENU
+	V4L2_CTRL_TYPE_INTEGER_MENU = C.V4L2_CTRL_TYPE_INTEGER_MENU
+)
+
 func GetNameByFourCC(fourcc uint32) string {
 	const mask = 0xFF
 	b := make([]byte, 4)

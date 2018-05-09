@@ -324,6 +324,7 @@ func (c *V4L2_Queryctrl) set(ptr unsafe.Pointer) {
 
 func (c *V4L2_Queryctrl) get(ptr unsafe.Pointer) {
 	p := (*C.struct_v4l2_queryctrl)(ptr)
+	c.ID = uint32(p.id)
 
 	// due to type field, it is keyword in golang
 	tmp := (*uint32)(unsafe.Pointer(
@@ -353,7 +354,7 @@ func IoctlQueryCtrl(fd int, argp *V4L2_Queryctrl) error {
 type V4L2_Querymenu struct {
 	ID    uint32
 	Index uint32
-	union interface{}
+	union []byte
 }
 
 func (m *V4L2_Querymenu) set(ptr unsafe.Pointer) {
