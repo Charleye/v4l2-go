@@ -26,6 +26,10 @@ const (
 	VIDIOC_CROPCAP   = C.VIDIOC_CROPCAP  // Information about the video cropping and scaling abilities
 	VIDIOC_QUERYBUF  = C.VIDIOC_QUERYBUF // Query the status of a buffer
 	VIDIOC_REQBUFS   = C.VIDIOC_REQBUFS  //  Initiate Memory Mapping, User Pointer I/O or DMA buffer I/O
+	VIDIOC_QBUF      = C.VIDIOC_QBUF     // Exchange a buffer with the driver
+	VIDIOC_DQBUF     = C.VIDIOC_DQBUF
+	VIDIOC_G_PARM    = C.VIDIOC_G_PARM // Get or set streaming parameters
+	VIDIOC_S_PARM    = C.VIDIOC_S_PARM
 )
 
 // v4l2 buffer type

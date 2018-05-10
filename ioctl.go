@@ -6,6 +6,7 @@ package main
 import "C"
 
 import (
+	"fmt"
 	"log"
 	"syscall"
 	"unsafe"
@@ -576,6 +577,30 @@ func IoctlQueryBuf(fd int, argp *V4L2_Buffer) error {
 	return nil
 }
 
+func IoctlQBuf(fd int, argp *V4L2_Buffer) error {
+	var vb C.struct_v4l2_buffer
+	p := unsafe.Pointer(&vb)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_QBUF, p)
+	if err != nil {
+		return err
+	}
+	argp.get(p)
+	return nil
+}
+
+func IoctlDQBuf(fd int, argp *V4L2_Buffer) error {
+	var vb C.struct_v4l2_buffer
+	p := unsafe.Pointer(&vb)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_DQBUF, p)
+	if err != nil {
+		return err
+	}
+	argp.get(p)
+	return nil
+}
+
 type V4L2_Requestbuffers struct {
 	Count  uint32
 	Type   uint32
@@ -606,5 +631,101 @@ func IoctlRequestBuffers(fd int, argp *V4L2_Requestbuffers) error {
 		return err
 	}
 	argp.get(p)
+	return nil
+}
+
+type V4L2_Streamparm struct {
+	Type uint32
+	Parm interface{}
+}
+
+type V4L2_Captureparm struct {
+	Capability   uint32
+	CaptureMode  uint32
+	TimePerFrame V4L2_Fract
+	ExtendedMode uint32
+	ReadBuffers  uint32
+}
+
+type V4L2_Outputparm struct {
+	Capability   uint32
+	OutputMode   uint32
+	TimePerFrame V4L2_Fract
+	ExtendedMode uint32
+	WriteBuffers uint32
+}
+
+func (o *V4L2_Outputparm) set(ptr unsafe.Pointer) {
+}
+
+func (o *V4L2_Outputparm) get(ptr unsafe.Pointer) {
+}
+
+func (c *V4L2_Captureparm) set(ptr unsafe.Pointer) {
+}
+
+func (c *V4L2_Captureparm) get(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_captureparm)(ptr)
+	c.Capability = uint32(p.capability)
+	c.CaptureMode = uint32(p.capturemode)
+	c.TimePerFrame.get(unsafe.Pointer(&p.timeperframe))
+	c.ExtendedMode = uint32(p.extendedmode)
+	c.ReadBuffers = uint32(p.readbuffers)
+}
+
+func (s *V4L2_Streamparm) set(ptr unsafe.Pointer) {
+	// due to type field, it is keyword in golang
+	tmp := (*C.__u32)(unsafe.Pointer(
+		uintptr(ptr) + offset_streamparm_type))
+	*tmp = C.__u32(s.Type)
+}
+
+func (s *V4L2_Streamparm) get(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_streamparm)(ptr)
+
+	switch s.Type {
+	case V4L2_BUF_TYPE_VIDEO_CAPTURE,
+		V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+		cp := V4L2_Captureparm{}
+		cp.get(unsafe.Pointer(&p.parm))
+		s.Parm = &cp
+	case V4L2_BUF_TYPE_VIDEO_OUTPUT,
+		V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+		op := V4L2_Outputparm{}
+		op.get(unsafe.Pointer(&p.parm))
+		s.Parm = &op
+	default:
+		log.Fatalf("Unexpected buffer type %v\n", s.Type)
+	}
+}
+
+func IoctlGetParm(fd int, argp *V4L2_Streamparm) error {
+	var sp C.struct_v4l2_streamparm
+	p := unsafe.Pointer(&sp)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_G_PARM, p)
+	if err != nil {
+		return err
+	}
+	argp.get(p)
+	return nil
+}
+
+func IoctlSetParm(fd int, argp *V4L2_Streamparm) error {
+	var sp C.struct_v4l2_streamparm
+	p := unsafe.Pointer(&sp)
+	argp.set(p)
+	switch parm := argp.Parm.(type) {
+	case *V4L2_Captureparm:
+		parm.set(unsafe.Pointer(&sp.parm))
+	case *V4L2_Outputparm:
+		parm.set(unsafe.Pointer(&sp.parm))
+	default:
+		panic(fmt.Sprintf("Unexpected type %T\n", parm))
+	}
+	err := ioctl(fd, VIDIOC_S_PARM, p)
+	if err != nil {
+		return err
+	}
 	return nil
 }
