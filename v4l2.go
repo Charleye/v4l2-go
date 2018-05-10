@@ -25,6 +25,7 @@ const (
 	VIDIOC_S_CROP    = C.VIDIOC_S_CROP
 	VIDIOC_CROPCAP   = C.VIDIOC_CROPCAP  // Information about the video cropping and scaling abilities
 	VIDIOC_QUERYBUF  = C.VIDIOC_QUERYBUF // Query the status of a buffer
+	VIDIOC_REQBUFS   = C.VIDIOC_REQBUFS  //  Initiate Memory Mapping, User Pointer I/O or DMA buffer I/O
 )
 
 // v4l2 buffer type
@@ -64,6 +65,14 @@ const (
 const (
 	V4L2_CTRL_TYPE_MENU         = C.V4L2_CTRL_TYPE_MENU
 	V4L2_CTRL_TYPE_INTEGER_MENU = C.V4L2_CTRL_TYPE_INTEGER_MENU
+)
+
+// memory type
+const (
+	V4L2_MEMORY_MMAP    = C.V4L2_MEMORY_MMAP
+	V4L2_MEMORY_USERPTR = C.V4L2_MEMORY_USERPTR
+	V4L2_MEMORY_OVERLAY = C.V4L2_MEMORY_OVERLAY
+	V4L2_MEMORY_DMABUF  = C.V4L2_MEMORY_DMABUF
 )
 
 func GetNameByFourCC(fourcc uint32) string {

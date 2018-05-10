@@ -54,9 +54,9 @@ func (f *V4L2_Fmtdesc) set(ptr unsafe.Pointer) {
 	p.index = C.__u32(f.Index)
 
 	// due to type field, it is keyword in golang
-	tmp := (*uint32)(unsafe.Pointer(
+	tmp := (*C.__u32)(unsafe.Pointer(
 		uintptr(ptr) + offset_fmtdesc_type))
-	*tmp = f.Type
+	*tmp = C.__u32(f.Type)
 }
 
 func (f *V4L2_Fmtdesc) get(ptr unsafe.Pointer) {
@@ -197,9 +197,9 @@ func (f *V4L2_Pix_Format) get(ptr unsafe.Pointer) {
 
 func (f *V4L2_Format) set(ptr unsafe.Pointer) {
 	// due to type field, it is keyword in golang
-	tmp := (*uint32)(unsafe.Pointer(
+	tmp := (*C.__u32)(unsafe.Pointer(
 		uintptr(ptr) + offset_format_type))
-	*tmp = f.Type
+	*tmp = C.__u32(f.Type)
 }
 
 func (f *V4L2_Format) get(ptr unsafe.Pointer) {
@@ -328,9 +328,9 @@ func (c *V4L2_Queryctrl) get(ptr unsafe.Pointer) {
 	c.ID = uint32(p.id)
 
 	// due to type field, it is keyword in golang
-	tmp := (*uint32)(unsafe.Pointer(
+	tmp := (*C.__u32)(unsafe.Pointer(
 		uintptr(ptr) + offset_queryctrl_type))
-	c.Type = *tmp
+	c.Type = uint32(*tmp)
 
 	c.Name = C.GoString((*C.char)(unsafe.Pointer(&p.name[0])))
 	c.Minimum = int32(p.minimum)
@@ -412,9 +412,9 @@ func (r *V4L2_Rect) get(ptr unsafe.Pointer) {
 
 func (c *V4L2_Crop) set(ptr unsafe.Pointer) {
 	// due to type field, it is keyword in golang
-	tmp := (*uint32)(unsafe.Pointer(
+	tmp := (*C.__u32)(unsafe.Pointer(
 		uintptr(ptr) + offset_crop_type))
-	*tmp = c.Type
+	*tmp = C.__u32(c.Type)
 }
 
 func IoctlGetCrop(fd int, argp *V4L2_Crop) error {
@@ -461,9 +461,9 @@ func (f *V4L2_Fract) get(ptr unsafe.Pointer) {
 
 func (c *V4L2_Cropcap) set(ptr unsafe.Pointer) {
 	// due to type field, it is keyword in golang
-	tmp := (*uint32)(unsafe.Pointer(
+	tmp := (*C.__u32)(unsafe.Pointer(
 		uintptr(ptr) + offset_crop_type))
-	*tmp = c.Type
+	*tmp = C.__u32(c.Type)
 }
 
 func IoctlCropCap(fd int, argp *V4L2_Cropcap) error {
@@ -508,9 +508,9 @@ func (t *V4L2_Timecode) get(ptr unsafe.Pointer) {
 	p := (*C.struct_v4l2_timecode)(ptr)
 
 	// due to type field, it is keyword in golang
-	tmp := (*uint32)(unsafe.Pointer(
+	tmp := (*C.__u32)(unsafe.Pointer(
 		uintptr(ptr) + offset_timecode_type))
-	t.Type = *tmp
+	t.Type = uint32(*tmp)
 
 	t.Flags = uint32(p.flags)
 	t.Frames = uint8(p.frames)
@@ -526,9 +526,9 @@ func (b *V4L2_Buffer) set(ptr unsafe.Pointer) {
 	p.index = C.__u32(b.Index)
 
 	// due to type field, it is keyword in golang
-	tmp := (*uint32)(unsafe.Pointer(
+	tmp := (*C.__u32)(unsafe.Pointer(
 		uintptr(ptr) + offset_buffer_type))
-	*tmp = b.Type
+	*tmp = C.__u32(b.Type)
 
 	p.bytesused = C.__u32(b.BytesUsed)
 	p.flags = C.__u32(b.Flags)
@@ -547,9 +547,9 @@ func (b *V4L2_Buffer) get(ptr unsafe.Pointer) {
 	b.Index = uint32(p.index)
 
 	// due to type field, it is keyword in golang
-	tmp := (*uint32)(unsafe.Pointer(
+	tmp := (*C.__u32)(unsafe.Pointer(
 		uintptr(ptr) + offset_buffer_type))
-	b.Type = *tmp
+	b.Type = uint32(*tmp)
 
 	b.BytesUsed = uint32(p.bytesused)
 	b.Flags = uint32(p.flags)
@@ -569,6 +569,39 @@ func IoctlQueryBuf(fd int, argp *V4L2_Buffer) error {
 	p := unsafe.Pointer(&vb)
 	argp.set(p)
 	err := ioctl(fd, VIDIOC_QUERYBUF, p)
+	if err != nil {
+		return err
+	}
+	argp.get(p)
+	return nil
+}
+
+type V4L2_Requestbuffers struct {
+	Count  uint32
+	Type   uint32
+	Memory uint32
+}
+
+func (b *V4L2_Requestbuffers) set(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_requestbuffers)(ptr)
+	p.count = C.__u32(b.Count)
+	// due to type field, it is keyword in golang
+	tmp := (*C.__u32)(unsafe.Pointer(
+		uintptr(ptr) + offset_requestbuffers_type))
+	*tmp = C.__u32(b.Type)
+	p.memory = C.__u32(b.Memory)
+}
+
+func (b *V4L2_Requestbuffers) get(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_requestbuffers)(ptr)
+	b.Count = uint32(p.count)
+}
+
+func IoctlRequestBuffers(fd int, argp *V4L2_Requestbuffers) error {
+	var rb C.struct_v4l2_requestbuffers
+	p := unsafe.Pointer(&rb)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_REQBUFS, p)
 	if err != nil {
 		return err
 	}
