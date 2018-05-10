@@ -23,7 +23,8 @@ const (
 	VIDIOC_QUERYMENU = C.VIDIOC_QUERYMENU //  Enumerate controls and menu control items
 	VIDIOC_G_CROP    = C.VIDIOC_G_CROP    // Get or set the current cropping rectangle
 	VIDIOC_S_CROP    = C.VIDIOC_S_CROP
-	VIDIOC_CROPCAP   = C.VIDIOC_CROPCAP // Information about the video cropping and scaling abilities
+	VIDIOC_CROPCAP   = C.VIDIOC_CROPCAP  // Information about the video cropping and scaling abilities
+	VIDIOC_QUERYBUF  = C.VIDIOC_QUERYBUF // Query the status of a buffer
 )
 
 // v4l2 buffer type

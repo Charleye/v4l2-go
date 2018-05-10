@@ -7,6 +7,7 @@ import "C"
 
 import (
 	"log"
+	"syscall"
 	"unsafe"
 )
 
@@ -476,5 +477,101 @@ func IoctlCropCap(fd int, argp *V4L2_Cropcap) error {
 	argp.Bounds.get(unsafe.Pointer(&cc.bounds))
 	argp.Defrect.get(unsafe.Pointer(&cc.defrect))
 	argp.PixelAspect.get(unsafe.Pointer(&cc.pixelaspect))
+	return nil
+}
+
+type V4L2_Buffer struct {
+	Index     uint32
+	Type      uint32
+	BytesUsed uint32
+	Flags     uint32
+	Field     uint32
+	TimeStamp syscall.Timeval
+	TimeCode  V4L2_Timecode
+	Sequence  uint32
+	Memory    uint32
+	M         []byte
+	Length    uint32
+}
+
+type V4L2_Timecode struct {
+	Type     uint32
+	Flags    uint32
+	Frames   uint8
+	Seconds  uint8
+	Minutes  uint8
+	Hours    uint8
+	UserBits [4]uint8
+}
+
+func (t *V4L2_Timecode) get(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_timecode)(ptr)
+
+	// due to type field, it is keyword in golang
+	tmp := (*uint32)(unsafe.Pointer(
+		uintptr(ptr) + offset_timecode_type))
+	t.Type = *tmp
+
+	t.Flags = uint32(p.flags)
+	t.Frames = uint8(p.frames)
+	t.Seconds = uint8(p.seconds)
+	t.Minutes = uint8(p.minutes)
+	t.Hours = uint8(p.hours)
+	data := (*[4]uint8)(unsafe.Pointer(&p.userbits[0]))
+	t.UserBits = *data
+}
+
+func (b *V4L2_Buffer) set(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_buffer)(ptr)
+	p.index = C.__u32(b.Index)
+
+	// due to type field, it is keyword in golang
+	tmp := (*uint32)(unsafe.Pointer(
+		uintptr(ptr) + offset_buffer_type))
+	*tmp = b.Type
+
+	p.bytesused = C.__u32(b.BytesUsed)
+	p.flags = C.__u32(b.Flags)
+	p.field = C.__u32(b.Field)
+	p.memory = C.__u32(b.Memory)
+
+	if cap(b.M) == __SIZEOF_POINTER__ {
+		data := (*[__SIZEOF_POINTER__]byte)(C.CBytes(b.M))
+		p.m = *data
+	}
+	p.length = C.__u32(b.Length)
+}
+
+func (b *V4L2_Buffer) get(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_buffer)(ptr)
+	b.Index = uint32(p.index)
+
+	// due to type field, it is keyword in golang
+	tmp := (*uint32)(unsafe.Pointer(
+		uintptr(ptr) + offset_buffer_type))
+	b.Type = *tmp
+
+	b.BytesUsed = uint32(p.bytesused)
+	b.Flags = uint32(p.flags)
+	b.Field = uint32(p.field)
+
+	t := (*syscall.Timeval)(unsafe.Pointer(&p.timestamp))
+	b.TimeStamp = *t
+	b.TimeCode.get(unsafe.Pointer(&p.timecode))
+	b.Sequence = uint32(p.sequence)
+	b.Memory = uint32(p.memory)
+	b.M = C.GoBytes(unsafe.Pointer(&p.m), __SIZEOF_POINTER__)
+	b.Length = uint32(p.length)
+}
+
+func IoctlQueryBuf(fd int, argp *V4L2_Buffer) error {
+	var vb C.struct_v4l2_buffer
+	p := unsafe.Pointer(&vb)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_QUERYBUF, p)
+	if err != nil {
+		return err
+	}
+	argp.get(p)
 	return nil
 }

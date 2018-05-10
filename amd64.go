@@ -10,6 +10,10 @@
 package main
 
 const (
+	__SIZEOF_POINTER__    =  8
+)
+
+const (
 	offset_format_type            = 0
 	offset_streamparm_type        = 0
 	offset_requestbuffers_type    = 4
@@ -24,5 +28,6 @@ const (
 	offset_input_type             = 36
 	offset_output_type            = 36
 	offset_selection_type         = 0
+	offset_timecode_type          = 0
 )
 

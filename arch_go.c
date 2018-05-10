@@ -35,6 +35,10 @@ int main() {
 
 	printf("package main\n\n");
 
+    printf("const (\n");
+    printf("\t__SIZEOF_POINTER__    =  %llu\n", (long long unsigned)__SIZEOF_POINTER__);
+    printf(")\n\n");
+
 	printf("const (\n");
 	printf("\toffset_format_type            = %llu\n", (long long unsigned) offsetof(struct v4l2_format, type));
 	printf("\toffset_streamparm_type        = %llu\n", (long long unsigned) offsetof(struct v4l2_streamparm, type));
@@ -50,6 +54,7 @@ int main() {
 	printf("\toffset_input_type             = %llu\n", (long long unsigned) offsetof(struct v4l2_input, type));
 	printf("\toffset_output_type            = %llu\n", (long long unsigned) offsetof(struct v4l2_output, type));
 	printf("\toffset_selection_type         = %llu\n", (long long unsigned) offsetof(struct v4l2_selection, type));
+    printf("\toffset_timecode_type          = %llu\n", (long long unsigned) offsetof(struct v4l2_timecode, type));
 	printf(")\n\n");
 
 	return 0;
