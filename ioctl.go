@@ -380,3 +380,101 @@ func IoctlQueryMenu(fd int, argp *V4L2_Querymenu) error {
 	argp.get(p)
 	return nil
 }
+
+type V4L2_Crop struct {
+	Type uint32
+	C    V4L2_Rect
+}
+
+type V4L2_Rect struct {
+	Left   int32
+	Top    int32
+	Width  uint32
+	Height uint32
+}
+
+func (r *V4L2_Rect) set(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_rect)(ptr)
+	p.left = C.__s32(r.Left)
+	p.top = C.__s32(r.Top)
+	p.width = C.__u32(r.Width)
+	p.height = C.__u32(r.Height)
+}
+
+func (r *V4L2_Rect) get(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_rect)(ptr)
+	r.Left = int32(p.left)
+	r.Top = int32(p.top)
+	r.Width = uint32(p.width)
+	r.Height = uint32(p.height)
+}
+
+func (c *V4L2_Crop) set(ptr unsafe.Pointer) {
+	// due to type field, it is keyword in golang
+	tmp := (*uint32)(unsafe.Pointer(
+		uintptr(ptr) + offset_crop_type))
+	*tmp = c.Type
+}
+
+func IoctlGetCrop(fd int, argp *V4L2_Crop) error {
+	var vc C.struct_v4l2_crop
+	p := unsafe.Pointer(&vc)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_G_CROP, p)
+	if err != nil {
+		return err
+	}
+	argp.C.get(unsafe.Pointer(&vc.c))
+	return nil
+}
+
+func IoctlSetCrop(fd int, argp *V4L2_Crop) error {
+	var vc C.struct_v4l2_crop
+	p := unsafe.Pointer(&vc)
+	argp.set(p)
+	argp.C.set(unsafe.Pointer(&vc.c))
+	err := ioctl(fd, VIDIOC_S_CROP, p)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type V4L2_Cropcap struct {
+	Type        uint32
+	Bounds      V4L2_Rect
+	Defrect     V4L2_Rect
+	PixelAspect V4L2_Fract
+}
+
+type V4L2_Fract struct {
+	Numerator   uint32
+	Denominator uint32
+}
+
+func (f *V4L2_Fract) get(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_fract)(ptr)
+	f.Numerator = uint32(p.numerator)
+	f.Denominator = uint32(p.denominator)
+}
+
+func (c *V4L2_Cropcap) set(ptr unsafe.Pointer) {
+	// due to type field, it is keyword in golang
+	tmp := (*uint32)(unsafe.Pointer(
+		uintptr(ptr) + offset_crop_type))
+	*tmp = c.Type
+}
+
+func IoctlCropCap(fd int, argp *V4L2_Cropcap) error {
+	var cc C.struct_v4l2_cropcap
+	p := unsafe.Pointer(&cc)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_CROPCAP, p)
+	if err != nil {
+		return err
+	}
+	argp.Bounds.get(unsafe.Pointer(&cc.bounds))
+	argp.Defrect.get(unsafe.Pointer(&cc.defrect))
+	argp.PixelAspect.get(unsafe.Pointer(&cc.pixelaspect))
+	return nil
+}
