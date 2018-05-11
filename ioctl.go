@@ -474,6 +474,12 @@ type V4L2_Fract struct {
 	Denominator uint32
 }
 
+func (f *V4L2_Fract) set(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_fract)(ptr)
+	p.numerator = C.__u32(f.Numerator)
+	p.denominator = C.__u32(f.Denominator)
+}
+
 func (f *V4L2_Fract) get(ptr unsafe.Pointer) {
 	p := (*C.struct_v4l2_fract)(ptr)
 	f.Numerator = uint32(p.numerator)
@@ -676,12 +682,26 @@ type V4L2_Outputparm struct {
 }
 
 func (o *V4L2_Outputparm) set(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_outputparm)(ptr)
+	p.outputmode = C.__u32(o.OutputMode)
+	o.TimePerFrame.set(unsafe.Pointer(&p.timeperframe))
+	p.writebuffers = C.__u32(o.WriteBuffers)
 }
 
 func (o *V4L2_Outputparm) get(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_outputparm)(ptr)
+	o.Capability = uint32(p.capability)
+	o.OutputMode = uint32(p.outputmode)
+	o.TimePerFrame.get(unsafe.Pointer(&p.timeperframe))
+	o.ExtendedMode = uint32(p.extendedmode)
+	o.WriteBuffers = uint32(p.writebuffers)
 }
 
 func (c *V4L2_Captureparm) set(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_captureparm)(ptr)
+	p.capturemode = C.__u32(c.CaptureMode)
+	c.TimePerFrame.set(unsafe.Pointer(&p.timeperframe))
+	p.readbuffers = C.__u32(c.ReadBuffers)
 }
 
 func (c *V4L2_Captureparm) get(ptr unsafe.Pointer) {
