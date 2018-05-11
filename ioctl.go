@@ -94,7 +94,7 @@ type V4L2_Pix_Format struct {
 	ColorSpace   uint32
 	Priv         uint32
 	Flags        uint32
-	YcbcrEnc     uint32
+	Encoding     uint32
 	Quantization uint32
 	XferFunc     uint32
 }
@@ -108,7 +108,7 @@ type V4L2_Pix_Format_Mplane struct {
 	PlaneFmt     [VIDEO_MAX_PLANES]V4L2_Plane_Pix_Format
 	NumPlanes    uint8
 	Flags        uint8
-	YcbcrEnc     uint8
+	Encoding     uint8
 	Quantization uint8
 	XferFunc     uint8
 }
@@ -142,7 +142,12 @@ func (f *V4L2_Pix_Format_Mplane) set(ptr unsafe.Pointer) {
 		f.PlaneFmt[i].set(unsafe.Pointer(&p.plane_fmt[i]))
 	}
 	p.flags = C.__u8(f.Flags)
-	p.ycbcr_enc = C.__u8(f.YcbcrEnc)
+
+	// v4l2_pix_format_mplane in videodev2.h is a little difference between linux-4.4.0 and linux-4.14.0
+	tmp := (*C.__u8)(unsafe.Pointer(
+		uintptr(ptr) + offset_pix_format_mplane_encoding))
+	*tmp = C.__u8(f.Encoding)
+
 	p.quantization = C.__u8(f.Quantization)
 	p.xfer_func = C.__u8(f.XferFunc)
 }
@@ -159,7 +164,12 @@ func (f *V4L2_Pix_Format_Mplane) get(ptr unsafe.Pointer) {
 		f.PlaneFmt[i].get(unsafe.Pointer(&p.plane_fmt[i]))
 	}
 	f.Flags = uint8(p.flags)
-	f.YcbcrEnc = uint8(p.ycbcr_enc)
+
+	// v4l2_pix_format_mplane in videodev2.h is a little difference between linux-4.4.0 and linux-4.14.0
+	tmp := (*C.__u8)(unsafe.Pointer(
+		uintptr(ptr) + offset_pix_format_mplane_encoding))
+	f.Encoding = uint8(*tmp)
+
 	f.Quantization = uint8(p.quantization)
 	f.XferFunc = uint8(p.xfer_func)
 }
@@ -175,7 +185,12 @@ func (f *V4L2_Pix_Format) set(ptr unsafe.Pointer) {
 	p.colorspace = C.__u32(f.ColorSpace)
 	p.priv = C.__u32(f.Priv)
 	p.flags = C.__u32(f.Flags)
-	p.ycbcr_enc = C.__u32(f.YcbcrEnc)
+
+	// v4l2_pix_format in videodev2.h is a little difference between linux-4.4.0 and linux-4.14.0
+	tmp := (*C.__u32)(unsafe.Pointer(
+		uintptr(ptr) + offset_pix_format_encoding))
+	*tmp = C.__u32(f.Encoding)
+
 	p.quantization = C.__u32(f.Quantization)
 	p.xfer_func = C.__u32(f.XferFunc)
 }
@@ -191,7 +206,12 @@ func (f *V4L2_Pix_Format) get(ptr unsafe.Pointer) {
 	f.ColorSpace = uint32(p.colorspace)
 	f.Priv = uint32(p.priv)
 	f.Flags = uint32(p.flags)
-	f.YcbcrEnc = uint32(p.ycbcr_enc)
+
+	// v4l2_pix_format in videodev2.h is a little difference between linux-4.4.0 and linux-4.14.0
+	tmp := (*C.__u32)(unsafe.Pointer(
+		uintptr(ptr) + offset_pix_format_encoding))
+	f.Encoding = uint32(*tmp)
+
 	f.Quantization = uint32(p.quantization)
 	f.XferFunc = uint32(p.xfer_func)
 }
