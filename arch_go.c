@@ -50,6 +50,7 @@ int main() {
 	printf("\toffset_frmsizeenum_type           = %llu\n", (long long unsigned) offsetof(struct v4l2_frmsizeenum, type));
 	printf("\toffset_frmivalenum_type           = %llu\n", (long long unsigned) offsetof(struct v4l2_frmivalenum, type));
 	printf("\toffset_queryctrl_type             = %llu\n", (long long unsigned) offsetof(struct v4l2_queryctrl, type));
+	printf("\toffset_event_subscription_type    = %llu\n", (long long unsigned) offsetof(struct v4l2_event_subscription, type));
 	printf("\toffset_querymenu_union            = %llu\n", (long long unsigned) offsetof(struct v4l2_querymenu, name));
 	printf("\toffset_input_type                 = %llu\n", (long long unsigned) offsetof(struct v4l2_input, type));
 	printf("\toffset_output_type                = %llu\n", (long long unsigned) offsetof(struct v4l2_output, type));

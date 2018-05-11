@@ -769,3 +769,42 @@ func IoctlSetParm(fd int, argp *V4L2_Streamparm) error {
 	}
 	return nil
 }
+
+type V4L2_Event_Subscription struct {
+	Type  uint32
+	ID    uint32
+	Flags uint32
+}
+
+func (e *V4L2_Event_Subscription) set(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_event_subscription)(ptr)
+
+	tmp := (*C.__u32)(unsafe.Pointer(
+		uintptr(ptr) + offset_event_subscription_type))
+	*tmp = C.__u32(e.Type)
+
+	p.id = C.__u32(e.ID)
+	p.flags = C.__u32(e.Flags)
+}
+
+func IoctlSubscribeEvent(fd int, argp *V4L2_Event_Subscription) error {
+	var se C.struct_v4l2_event_subscription
+	p := unsafe.Pointer(&se)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_SUBSCRIBE_EVENT, p)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func IoctlUnsubscribeEvent(fd int, argp *V4L2_Event_Subscription) error {
+	var ue C.struct_v4l2_event_subscription
+	p := unsafe.Pointer(&ue)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_UNSUBSCRIBE_EVENT, p)
+	if err != nil {
+		return err
+	}
+	return nil
+}
