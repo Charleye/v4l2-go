@@ -25,6 +25,7 @@ const (
 	offset_frmivalenum_type           = 16
 	offset_queryctrl_type             = 4
 	offset_event_subscription_type    = 0
+	offset_event_type                 = 0
 	offset_querymenu_union            = 8
 	offset_input_type                 = 36
 	offset_output_type                = 36

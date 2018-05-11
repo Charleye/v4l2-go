@@ -808,3 +808,39 @@ func IoctlUnsubscribeEvent(fd int, argp *V4L2_Event_Subscription) error {
 	}
 	return nil
 }
+
+type V4L2_Event struct {
+	Type      uint32
+	Union     interface{}
+	Pending   uint32
+	Sequence  uint32
+	TimeStamp syscall.Timespec
+	ID        uint32
+}
+
+func (e *V4L2_Event) get(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_event)(ptr)
+
+	tmp := (*C.__u32)(unsafe.Pointer(
+		uintptr(ptr) + offset_event_type))
+	e.Type = uint32(*tmp)
+
+	e.Pending = uint32(p.pending)
+	e.Sequence = uint32(p.sequence)
+
+	t := (*syscall.Timespec)(unsafe.Pointer(&p.timestamp))
+	e.TimeStamp = *t
+
+	e.ID = uint32(p.id)
+}
+
+func IoctlDQEvent(fd int, argp *V4L2_Event) error {
+	var ve C.struct_v4l2_event
+	p := unsafe.Pointer(&ve)
+	err := ioctl(fd, VIDIOC_DQEVENT, p)
+	if err != nil {
+		return err
+	}
+	argp.get(p)
+	return nil
+}

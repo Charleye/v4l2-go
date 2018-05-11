@@ -34,6 +34,7 @@ const (
 	// Subscribe or unsubscribe event
 	VIDIOC_SUBSCRIBE_EVENT   = C.VIDIOC_SUBSCRIBE_EVENT
 	VIDIOC_UNSUBSCRIBE_EVENT = C.VIDIOC_UNSUBSCRIBE_EVENT
+	VIDIOC_DQEVENT           = C.VIDIOC_DQEVENT // Dequeue event
 )
 
 // v4l2 buffer type
