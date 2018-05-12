@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"syscall"
+
+	"github.com/Charleye/v4l2-go"
 )
 
 var device = flag.String("d", "/dev/video11", "video device")
@@ -16,8 +18,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var vc V4L2_Capability
-	err = IoctlQueryCap(fd, &vc)
+	var vc v4l2.V4L2_Capability
+	err = v4l2.IoctlQueryCap(fd, &vc)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,11 +31,11 @@ func main() {
 	fmt.Println("")
 
 	for i := 0; ; i++ {
-		vf := V4L2_Fmtdesc{
+		vf := v4l2.V4L2_Fmtdesc{
 			Index: uint32(i),
-			Type:  V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+			Type:  v4l2.V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
 		}
-		err := IoctlEnumFmt(fd, &vf)
+		err := v4l2.IoctlEnumFmt(fd, &vf)
 		if err != nil {
 			if err == syscall.EINVAL {
 				break
@@ -47,11 +49,11 @@ func main() {
 	fmt.Println("")
 
 	// first VIDIOC_G_FMT
-	var vfmt V4L2_Format
-	var pfm V4L2_Pix_Format_Mplane
-	vfmt.Type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
-	vfmt.fmt = &pfm
-	err = IoctlGetFmt(fd, &vfmt)
+	var vfmt v4l2.V4L2_Format
+	var pfm v4l2.V4L2_Pix_Format_Mplane
+	vfmt.Type = v4l2.V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
+	vfmt.Fmt = &pfm
+	err = v4l2.IoctlGetFmt(fd, &vfmt)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,18 +67,18 @@ func main() {
 	fmt.Println("")
 
 	// first VIDIOC_S_FMT
-	vpfm := V4L2_Pix_Format_Mplane{
+	vpfm := v4l2.V4L2_Pix_Format_Mplane{
 		Width:       1024,
 		Height:      768,
-		PixelFormat: GetFourCCByName("NM12"),
+		PixelFormat: v4l2.GetFourCCByName("NM12"),
 	}
 	vpfm.NumPlanes = 2
 	vpfm.PlaneFmt[0].SizeImage = 0xC0000
 	vpfm.PlaneFmt[0].BytesPerLine = 1024
 	vpfm.PlaneFmt[1].SizeImage = 0x60000
 	vpfm.PlaneFmt[1].BytesPerLine = 1024
-	vfmt.fmt = &vpfm
-	err = IoctlSetFmt(fd, &vfmt)
+	vfmt.Fmt = &vpfm
+	err = v4l2.IoctlSetFmt(fd, &vfmt)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -88,10 +90,10 @@ func main() {
 	fmt.Println("")
 
 	// second VIDIOC_G_FMT
-	pfm = V4L2_Pix_Format_Mplane{}
-	vfmt.Type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
-	vfmt.fmt = &pfm
-	err = IoctlGetFmt(fd, &vfmt)
+	pfm = v4l2.V4L2_Pix_Format_Mplane{}
+	vfmt.Type = v4l2.V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
+	vfmt.Fmt = &pfm
+	err = v4l2.IoctlGetFmt(fd, &vfmt)
 	if err != nil {
 		log.Fatal(err)
 	}

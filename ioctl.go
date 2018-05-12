@@ -81,7 +81,7 @@ func IoctlEnumFmt(fd int, argp *V4L2_Fmtdesc) error {
 
 type V4L2_Format struct {
 	Type uint32
-	fmt  interface{}
+	Fmt  interface{}
 }
 
 type V4L2_Pix_Format struct {
