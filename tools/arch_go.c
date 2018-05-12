@@ -33,7 +33,7 @@ int main() {
 	printf("/////////////////////////////////////////////////////\n");
 	printf("\n");
 
-	printf("package main\n\n");
+	printf("package v4l2\n\n");
 
     printf("const (\n");
     printf("\t__SIZEOF_POINTER__    =  %llu\n", (long long unsigned)__SIZEOF_POINTER__);

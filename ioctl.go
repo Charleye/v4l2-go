@@ -376,7 +376,7 @@ func IoctlQueryCtrl(fd int, argp *V4L2_Queryctrl) error {
 type V4L2_Querymenu struct {
 	ID    uint32
 	Index uint32
-	union []byte
+	Union []byte
 }
 
 func (m *V4L2_Querymenu) set(ptr unsafe.Pointer) {
