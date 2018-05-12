@@ -388,7 +388,7 @@ func (m *V4L2_Querymenu) set(ptr unsafe.Pointer) {
 func (m *V4L2_Querymenu) get(ptr unsafe.Pointer) {
 	// due to anonymous union, cannot get it's field pointer
 	p := unsafe.Pointer(uintptr(ptr) + offset_querymenu_union)
-	m.union = C.GoBytes(p, 32)
+	m.Union = C.GoBytes(p, 32)
 }
 
 func IoctlQueryMenu(fd int, argp *V4L2_Querymenu) error {
