@@ -7,10 +7,10 @@
 //                                                 //
 /////////////////////////////////////////////////////
 
-package main
+package v4l2
 
 const (
-	__SIZEOF_POINTER__    =  8
+	__SIZEOF_POINTER__ = 8
 )
 
 const (
@@ -34,4 +34,3 @@ const (
 	offset_pix_format_encoding        = 36
 	offset_pix_format_mplane_encoding = 182
 )
-

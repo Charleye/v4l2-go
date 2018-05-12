@@ -1,4 +1,4 @@
-package main
+package v4l2
 
 /*
 #include <linux/videodev2.h>
