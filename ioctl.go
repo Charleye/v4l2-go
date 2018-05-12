@@ -226,7 +226,7 @@ func (f *V4L2_Format) set(ptr unsafe.Pointer) {
 func (f *V4L2_Format) get(ptr unsafe.Pointer) {
 	p := (*C.struct_v4l2_format)(ptr)
 
-	switch pf := f.fmt.(type) {
+	switch pf := f.Fmt.(type) {
 	case *V4L2_Pix_Format:
 		pf.get(unsafe.Pointer(&p.fmt))
 	case *V4L2_Pix_Format_Mplane:
@@ -252,7 +252,7 @@ func IoctlSetFmt(fd int, argp *V4L2_Format) error {
 	var vf C.struct_v4l2_format
 	p := unsafe.Pointer(&vf)
 	argp.set(p)
-	switch pf := argp.fmt.(type) {
+	switch pf := argp.Fmt.(type) {
 	case *V4L2_Pix_Format:
 		pf.set(unsafe.Pointer(&vf.fmt))
 	case *V4L2_Pix_Format_Mplane:
@@ -272,7 +272,7 @@ func IoctlTryFmt(fd int, argp *V4L2_Format) error {
 	var vf C.struct_v4l2_format
 	p := unsafe.Pointer(&vf)
 	argp.set(p)
-	switch pf := argp.fmt.(type) {
+	switch pf := argp.Fmt.(type) {
 	case *V4L2_Pix_Format:
 		pf.set(unsafe.Pointer(&vf.fmt))
 	case *V4L2_Pix_Format_Mplane:
