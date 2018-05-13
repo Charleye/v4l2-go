@@ -913,7 +913,7 @@ func IoctlSetExtCtrls(fd int, argp *V4L2_Ext_Controls) error {
 	argp.set(p)
 	ctrls.controls = (*C.struct_v4l2_ext_control)(unsafe.Pointer(&ctrl[0]))
 
-	err := ioctl(fd, VIDIOC_S_EXT_CTRLS, argp)
+	err := ioctl(fd, VIDIOC_S_EXT_CTRLS, p)
 	if err != nil {
 		return err
 	}
