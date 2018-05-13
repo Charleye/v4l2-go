@@ -903,7 +903,6 @@ func (c *V4L2_Ext_Controls) get(ptr unsafe.Pointer) {
 func IoctlSetExtCtrls(fd int, argp *V4L2_Ext_Controls) error {
 	var ctrls C.struct_v4l2_ext_controls
 	p := unsafe.Pointer(&ctrls)
-
 	var ctrl []C.struct_v4l2_ext_control
 	for i := 0; i < int(argp.Count); i++ {
 		var c C.struct_v4l2_ext_control
@@ -912,15 +911,9 @@ func IoctlSetExtCtrls(fd int, argp *V4L2_Ext_Controls) error {
 	}
 	argp.set(p)
 	ctrls.controls = (*C.struct_v4l2_ext_control)(unsafe.Pointer(&ctrl[0]))
-
 	err := ioctl(fd, VIDIOC_S_EXT_CTRLS, p)
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(ctrls)
-	fmt.Println(ctrl)
-	fmt.Printf("%p\n", &ctrl[0])
-
 	return nil
 }
