@@ -10,7 +10,7 @@
 package v4l2
 
 const (
-	__SIZEOF_POINTER__ = 8
+	__SIZEOF_POINTER__    =  8
 )
 
 const (
@@ -33,4 +33,7 @@ const (
 	offset_timecode_type              = 0
 	offset_pix_format_encoding        = 36
 	offset_pix_format_mplane_encoding = 182
+	offset_ext_controls_ctrl_class    = 0
+	offset_ext_control_union          = 12
 )
+

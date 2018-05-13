@@ -59,6 +59,8 @@ int main() {
     printf("\toffset_timecode_type              = %llu\n", (long long unsigned) offsetof(struct v4l2_timecode, type));
     printf("\toffset_pix_format_encoding        = %llu\n", (long long unsigned) offsetof(struct v4l2_pix_format, ycbcr_enc));
     printf("\toffset_pix_format_mplane_encoding = %llu\n", (long long unsigned) offsetof(struct v4l2_pix_format_mplane, ycbcr_enc));
+    printf("\toffset_ext_controls_ctrl_class    = %llu\n", (long long unsigned) offsetof(struct v4l2_ext_controls, ctrl_class));
+    printf("\toffset_ext_control_union          = %llu\n", (long long unsigned) offsetof(struct v4l2_ext_control, value));
 	printf(")\n\n");
 
 	return 0;

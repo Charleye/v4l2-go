@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"syscall"
-
-	"github.com/Charleye/v4l2-go"
 )
 
 var device = flag.String("d", "/dev/video0", "video device")
@@ -18,8 +16,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var vc v4l2.V4L2_Capability
-	err = v4l2.IoctlQueryCap(fd, &vc)
+	var vc V4L2_Capability
+	err = IoctlQueryCap(fd, &vc)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,11 +29,11 @@ func main() {
 	fmt.Println("")
 
 	for i := 0; ; i++ {
-		vf := v4l2.V4L2_Fmtdesc{
+		vf := V4L2_Fmtdesc{
 			Index: uint32(i),
-			Type:  v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE,
+			Type:  V4L2_BUF_TYPE_VIDEO_CAPTURE,
 		}
-		err := v4l2.IoctlEnumFmt(fd, &vf)
+		err := IoctlEnumFmt(fd, &vf)
 		if err != nil {
 			if err == syscall.EINVAL {
 				break
@@ -48,11 +46,11 @@ func main() {
 	}
 	fmt.Println("")
 
-	var vfmt v4l2.V4L2_Format
-	var pf v4l2.V4L2_Pix_Format
-	vfmt.Type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE
-	vfmt.Fmt = &pf
-	err = v4l2.IoctlGetFmt(fd, &vfmt)
+	var vfmt V4L2_Format
+	var pf V4L2_Pix_Format
+	vfmt.Type = V4L2_BUF_TYPE_VIDEO_CAPTURE
+	vfmt.fmt = &pf
+	err = IoctlGetFmt(fd, &vfmt)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,13 +62,13 @@ func main() {
 	fmt.Println("BytesPerLine: ", pf.BytesPerLine)
 	fmt.Println("")
 
-	vpf := v4l2.V4L2_Pix_Format{
+	vpf := V4L2_Pix_Format{
 		Width:       1024,
 		Height:      768,
-		PixelFormat: v4l2.GetFourCCByName("YUYV"),
+		PixelFormat: GetFourCCByName("YUYV"),
 	}
-	vfmt.Fmt = &vpf
-	err = v4l2.IoctlSetFmt(fd, &vfmt)
+	vfmt.fmt = &vpf
+	err = IoctlSetFmt(fd, &vfmt)
 	if err != nil {
 		log.Fatal(err)
 	}

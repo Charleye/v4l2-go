@@ -844,3 +844,78 @@ func IoctlDQEvent(fd int, argp *V4L2_Event) error {
 	argp.get(p)
 	return nil
 }
+
+type V4L2_Ext_Control struct {
+	ID    uint32
+	Size  uint32
+	Union interface{}
+}
+
+type V4L2_Ext_Controls struct {
+	ClassWhich uint32
+	Count      uint32
+	ErrorIdx   uint32
+	Controls   []V4L2_Ext_Control
+}
+
+func (c *V4L2_Ext_Control) set(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_ext_control)(ptr)
+	p.id = C.__u32(c.ID)
+	p.size = C.__u32(c.Size)
+
+	tmp := unsafe.Pointer(uintptr(ptr) + offset_ext_control_union)
+	switch v := c.Union.(type) {
+	case int32:
+		*(*C.__s32)(tmp) = C.__s32(v)
+	case int64:
+		*(*C.__s64)(tmp) = C.__s64(v)
+	case *string:
+		*(**C.char)(tmp) = (*C.char)(unsafe.Pointer(v))
+	case *uint8:
+		*(**C.__u8)(tmp) = (*C.__u8)(unsafe.Pointer(v))
+	case *uint16:
+		*(**C.__u16)(tmp) = (*C.__u16)(unsafe.Pointer(v))
+	case *uint32:
+		*(**C.__u32)(tmp) = (*C.__u32)(unsafe.Pointer(v))
+	case unsafe.Pointer:
+		*(**C.void)(tmp) = (*C.void)(v)
+	default:
+		panic(fmt.Sprintf("Unexpected type %T", v))
+	}
+}
+
+func (c *V4L2_Ext_Control) get(ptr unsafe.Pointer) {
+}
+
+func (c *V4L2_Ext_Controls) set(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_ext_controls)(ptr)
+
+	tmp := (*C.__u32)(unsafe.Pointer(
+		uintptr(ptr) + offset_ext_controls_ctrl_class))
+	*tmp = C.__u32(c.ClassWhich)
+
+	p.count = C.__u32(c.Count)
+}
+
+func (c *V4L2_Ext_Controls) get(ptr unsafe.Pointer) {
+}
+
+func IoctlGetExtCtrls(fd int, argp *V4L2_Ext_Controls) error {
+	var ctrls C.struct_v4l2_ext_controls
+	p := unsafe.Pointer(&ctrls)
+
+	var ctrl []C.struct_v4l2_ext_control
+	for i := 0; i < int(argp.Count); i++ {
+		var c C.struct_v4l2_ext_control
+		argp.Controls[i].set(unsafe.Pointer(&c))
+		ctrl = append(ctrl, c)
+	}
+	argp.set(p)
+	ctrls.controls = (*C.struct_v4l2_ext_control)(unsafe.Pointer(&ctrl[0]))
+
+	fmt.Println(ctrls)
+	fmt.Println(ctrl)
+	fmt.Printf("%p\n", &ctrl[0])
+
+	return nil
+}
