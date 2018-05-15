@@ -403,6 +403,55 @@ func IoctlQueryMenu(fd int, argp *V4L2_Querymenu) error {
 	return nil
 }
 
+type V4L2_Query_Ext_Ctrl struct {
+	ID           uint32
+	Type         uint32
+	Name         string
+	Minimum      int64
+	Maximum      int64
+	Step         uint64
+	DefaultValue int64
+	Flags        uint32
+	ElemSize     uint32
+	Elems        uint32
+	NrOfDims     uint32
+	Dims         [V4L2_CTRL_MAX_DIMS]uint32
+}
+
+func (c *V4L2_Query_Ext_Ctrl) set(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_query_ext_ctrl)(ptr)
+	p.id = C.__u32(c.ID)
+}
+
+func (c *V4L2_Query_Ext_Ctrl) get(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_query_ext_ctrl)(ptr)
+
+	tmp := (*C.__u32)(unsafe.Pointer(uintptr(ptr) + offset_query_ext_ctrl_type))
+	c.Type = uint32(*tmp)
+
+	c.Name = C.GoString((*C.char)(&p.name[0]))
+	c.Minimum = int64(p.minimum)
+	c.Maximum = int64(p.maximum)
+	c.Step = uint64(p.step)
+	c.DefaultValue = int64(p.default_value)
+	c.Flags = uint32(p.flags)
+	c.ElemSize = uint32(p.elem_size)
+	c.Elems = uint32(p.elems)
+	c.NrOfDims = uint32(p.nr_of_dims)
+}
+
+func IoctlQueryExtCtrl(fd int, argp *V4L2_Query_Ext_Ctrl) error {
+	var ctrl C.struct_v4l2_query_ext_ctrl
+	p := unsafe.Pointer(&ctrl)
+	argp.set(p)
+	err := ioctl(fd, VIDIOC_QUERY_EXT_CTRL, p)
+	if err != nil {
+		return err
+	}
+	argp.get(p)
+	return nil
+}
+
 type V4L2_Crop struct {
 	Type uint32
 	C    V4L2_Rect

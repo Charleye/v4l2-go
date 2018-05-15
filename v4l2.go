@@ -12,24 +12,25 @@ import (
 )
 
 const (
-	VIDIOC_QUERYCAP  = C.VIDIOC_QUERYCAP // Query device capabilities
-	VIDIOC_ENUM_FMT  = C.VIDIOC_ENUM_FMT // Enumerate image formats
-	VIDIOC_G_FMT     = C.VIDIOC_G_FMT    // Get or set the data format, try a format
-	VIDIOC_S_FMT     = C.VIDIOC_S_FMT
-	VIDIOC_TRY_FMT   = C.VIDIOC_TRY_FMT
-	VIDIOC_G_CTRL    = C.VIDIOC_G_CTRL
-	VIDIOC_S_CTRL    = C.VIDIOC_S_CTRL
-	VIDIOC_QUERYCTRL = C.VIDIOC_QUERYCTRL
-	VIDIOC_QUERYMENU = C.VIDIOC_QUERYMENU //  Enumerate controls and menu control items
-	VIDIOC_G_CROP    = C.VIDIOC_G_CROP    // Get or set the current cropping rectangle
-	VIDIOC_S_CROP    = C.VIDIOC_S_CROP
-	VIDIOC_CROPCAP   = C.VIDIOC_CROPCAP  // Information about the video cropping and scaling abilities
-	VIDIOC_QUERYBUF  = C.VIDIOC_QUERYBUF // Query the status of a buffer
-	VIDIOC_REQBUFS   = C.VIDIOC_REQBUFS  //  Initiate Memory Mapping, User Pointer I/O or DMA buffer I/O
-	VIDIOC_QBUF      = C.VIDIOC_QBUF     // Exchange a buffer with the driver
-	VIDIOC_DQBUF     = C.VIDIOC_DQBUF
-	VIDIOC_G_PARM    = C.VIDIOC_G_PARM // Get or set streaming parameters
-	VIDIOC_S_PARM    = C.VIDIOC_S_PARM
+	VIDIOC_QUERYCAP       = C.VIDIOC_QUERYCAP // Query device capabilities
+	VIDIOC_ENUM_FMT       = C.VIDIOC_ENUM_FMT // Enumerate image formats
+	VIDIOC_G_FMT          = C.VIDIOC_G_FMT    // Get or set the data format, try a format
+	VIDIOC_S_FMT          = C.VIDIOC_S_FMT
+	VIDIOC_TRY_FMT        = C.VIDIOC_TRY_FMT
+	VIDIOC_G_CTRL         = C.VIDIOC_G_CTRL
+	VIDIOC_S_CTRL         = C.VIDIOC_S_CTRL
+	VIDIOC_QUERYCTRL      = C.VIDIOC_QUERYCTRL
+	VIDIOC_QUERYMENU      = C.VIDIOC_QUERYMENU //  Enumerate controls and menu control items
+	VIDIOC_QUERY_EXT_CTRL = C.VIDIOC_QUERY_EXT_CTRL
+	VIDIOC_G_CROP         = C.VIDIOC_G_CROP // Get or set the current cropping rectangle
+	VIDIOC_S_CROP         = C.VIDIOC_S_CROP
+	VIDIOC_CROPCAP        = C.VIDIOC_CROPCAP  // Information about the video cropping and scaling abilities
+	VIDIOC_QUERYBUF       = C.VIDIOC_QUERYBUF // Query the status of a buffer
+	VIDIOC_REQBUFS        = C.VIDIOC_REQBUFS  //  Initiate Memory Mapping, User Pointer I/O or DMA buffer I/O
+	VIDIOC_QBUF           = C.VIDIOC_QBUF     // Exchange a buffer with the driver
+	VIDIOC_DQBUF          = C.VIDIOC_DQBUF
+	VIDIOC_G_PARM         = C.VIDIOC_G_PARM // Get or set streaming parameters
+	VIDIOC_S_PARM         = C.VIDIOC_S_PARM
 
 	// Subscribe or unsubscribe event
 	VIDIOC_SUBSCRIBE_EVENT   = C.VIDIOC_SUBSCRIBE_EVENT
@@ -83,6 +84,10 @@ const (
 const (
 	V4L2_CTRL_TYPE_MENU         = C.V4L2_CTRL_TYPE_MENU
 	V4L2_CTRL_TYPE_INTEGER_MENU = C.V4L2_CTRL_TYPE_INTEGER_MENU
+)
+
+const (
+	V4L2_CTRL_MAX_DIMS = C.V4L2_CTRL_MAX_DIMS
 )
 
 // memory type
