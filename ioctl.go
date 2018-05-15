@@ -917,3 +917,28 @@ func IoctlSetExtCtrls(fd int, argp *V4L2_Ext_Controls) error {
 	}
 	return nil
 }
+<<<<<<< HEAD
+
+func IoctlStreamOn(fd int, argp *int) error {
+	var i C.int
+	i = C.int(*argp)
+	p := unsafe.Pointer(&i)
+	err := ioctl(fd, VIDIOC_STREAMON, p)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func IoctlStreamOff(fd int, argp *int) error {
+	var i C.int
+	i = C.int(*argp)
+	p := unsafe.Pointer(&i)
+	err := ioctl(fd, VIDIOC_STREAMOFF, p)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+=======
+>>>>>>> 1ffb17fe995de6201193b915469e6f6be7c5dff0
