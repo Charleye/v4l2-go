@@ -438,6 +438,8 @@ func (c *V4L2_Query_Ext_Ctrl) get(ptr unsafe.Pointer) {
 	c.ElemSize = uint32(p.elem_size)
 	c.Elems = uint32(p.elems)
 	c.NrOfDims = uint32(p.nr_of_dims)
+	data := (*[V4L2_CTRL_MAX_DIMS]uint32)(unsafe.Pointer(&p.dims[0]))
+	c.Dims = *data
 }
 
 func IoctlQueryExtCtrl(fd int, argp *V4L2_Query_Ext_Ctrl) error {
