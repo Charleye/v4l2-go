@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"encoding/binary"
 	"flag"
 	"fmt"
 	"log"
@@ -78,11 +76,7 @@ func main() {
 			log.Fatal(err)
 		}
 		var offset uint32
-		tmp := bytes.NewReader(vb.M[:4])
-		err := binary.Read(tmp, binary.LittleEndian, &offset)
-		if err != nil {
-			fmt.Println("binary.Read failed: ", err)
-		}
+		v4l2.GetValueFromUnion(vb.M, &offset)
 		fmt.Println("offset: ", offset)
 
 		buf, err := syscall.Mmap(fd, int64(offset), int(vb.Length),
