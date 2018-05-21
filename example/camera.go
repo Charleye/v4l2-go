@@ -48,7 +48,6 @@ func main() {
 			return
 		default:
 			data := cam.Capture()
-			fmt.Println(len(data), cap(data))
 			n, _ := file.Write(data)
 			fmt.Println("Write: ", n)
 		}
