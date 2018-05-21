@@ -79,6 +79,10 @@ const (
 	/* two non contiguous planes - one Y, one Cr + Cb interleaved */
 	V4L2_PIX_FMT_NV12M = C.V4L2_PIX_FMT_NV12M
 	V4L2_PIX_FMT_NV21M = C.V4L2_PIX_FMT_NV21M
+
+	/* compressed formats */
+	V4L2_PIX_FMT_MJPEG = C.V4L2_PIX_FMT_MJPEG
+	V4L2_PIX_FMT_JPEG  = C.V4L2_PIX_FMT_JPEG
 )
 
 const (
@@ -139,6 +143,10 @@ func GetFourCCByName(name string) uint32 {
 		return V4L2_PIX_FMT_NV12M
 	case "NM21", "Y/CrCb 4:2:0":
 		return V4L2_PIX_FMT_NV21M
+	case "MJPG", "Motion-JPEG":
+		return V4L2_PIX_FMT_MJPEG
+	case "JPEG", "JFIF JPEG":
+		return V4L2_PIX_FMT_JPEG
 
 	default:
 		log.Fatal("Unexpected FourCC name")

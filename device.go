@@ -19,7 +19,7 @@ func Open(name string) (d *Device, err error) {
 		err = ErrorWrongDevice
 		return nil, err
 	}
-	d = Device{
+	d = &Device{
 		FD:   fd,
 		Path: name,
 	}
@@ -62,7 +62,7 @@ type Port struct {
 	State   uint32
 	Counter uint32 /* total number of dequeued buffers */
 	NBufs   uint32 // number of buffers in queue
-	Data    *Buffers
+	Bufs    *Buffers
 }
 
 type DeviceOps interface {
