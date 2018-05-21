@@ -24,6 +24,7 @@ const (
 	offset_frmsizeenum_type           = 8
 	offset_frmivalenum_type           = 16
 	offset_queryctrl_type             = 4
+	offset_query_ext_ctrl_type        = 4
 	offset_event_subscription_type    = 0
 	offset_event_type                 = 0
 	offset_querymenu_union            = 8
