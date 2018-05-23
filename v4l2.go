@@ -154,7 +154,7 @@ func GetNameByFourCC(fourcc uint32) string {
 
 func GetFourCCByName(name string) uint32 {
 	switch name {
-	case "YUV9", "YVU 4:1:0":
+	case "YVU9", "YVU 4:1:0":
 		return V4L2_PIX_FMT_YVU410
 	case "YV12", "YVU 4:2:0":
 		return V4L2_PIX_FMT_YVU420
