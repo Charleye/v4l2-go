@@ -67,7 +67,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to query capabilities of video node")
 	}
-	if caps.DeviceCaps|v4l2.V4L2_CAP_DEVICE_CAPS != 0 {
+	if caps.Capabilities&v4l2.V4L2_CAP_DEVICE_CAPS != 0 {
 		if caps.DeviceCaps&v4l2.V4L2_CAP_VIDEO_M2M == 0 {
 			log.Fatalf("Device %s does not support mem-to-mem (%#x)\n",
 				*video_node, caps.DeviceCaps)
@@ -154,6 +154,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to stream on")
 	}
+	defer v4l2.IoctlStreamOff(video_fd, &stream_type)
 
 	if *mode == DECODE {
 		format.Type = v4l2.V4L2_BUF_TYPE_VIDEO_OUTPUT
@@ -214,6 +215,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to mmap output buffer: %v", err)
 	}
+	defer syscall.Munmap(data_dst_buf)
 
 	buf = v4l2.V4L2_Buffer{} // zero
 	buf.Type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE
@@ -229,6 +231,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to stream on output interface")
 	}
+	defer v4l2.IoctlStreamOff(video_fd, &stream_type)
 
 	/* dequeue buffer */
 	var read_fds syscall.FdSet
@@ -238,10 +241,9 @@ func main() {
 		log.Fatalf("select errors: %v\n", err)
 	}
 
-	var out_file *os.File
 	if dq_frame(video_fd) > 0 {
 		fmt.Println("dequeue frame failed")
-		goto done
+		return
 	}
 
 	if *mode == DECODE {
@@ -253,7 +255,7 @@ func main() {
 		*out = def_outfile
 	}
 
-	out_file, err = os.OpenFile(*out, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	out_file, err := os.OpenFile(*out, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		log.Fatal("Failed to open output file")
 	}
@@ -261,12 +263,6 @@ func main() {
 	out_file.Write(data_dst_buf[:capture_buffer_sz])
 	out_file.Close()
 	fmt.Printf("Output file: %s, size: %v\n", *out, capture_buffer_sz)
-
-done:
-	syscall.Close(video_fd)
-	syscall.Munmap(data_src_buf)
-	syscall.Munmap(data_dst_buf)
-	syscall.Munmap(data_input_file)
 }
 
 func dq_frame(vid_fd int) int {
