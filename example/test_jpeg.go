@@ -98,7 +98,6 @@ func main() {
 	pixfmt.Field = v4l2.V4L2_FIELD_ANY
 	pixfmt.BytesPerLine = 0
 	format.Fmt = &pixfmt
-	fmt.Println(pixfmt)
 	err = v4l2.IoctlSetFmt(video_fd, &format)
 	if err != nil {
 		log.Fatal("Failed to set format")
