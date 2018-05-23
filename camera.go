@@ -131,7 +131,6 @@ func (c *Camera) Capture() []byte {
 	if err := IoctlDQBuf(c.FD, &vb); err != nil {
 		log.Fatal("Failed to dequeue buffer: ", err)
 	}
-	c.Bufs.Data[vb.Index] = c.Bufs.Data[vb.Index][:vb.Length]
 	data := c.Bufs.Data[vb.Index][:vb.BytesUsed]
 	if err := IoctlQBuf(c.FD, &vb); err != nil {
 		log.Fatal("Failed to enqueue buffer: ", err)
