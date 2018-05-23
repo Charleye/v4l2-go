@@ -1,3 +1,4 @@
+/* Tested on odroid-xu4 board */
 package main
 
 import (
@@ -66,7 +67,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to query capabilities of video node")
 	}
-	if caps.DeviceCaps&v4l2.V4L2_CAP_DEVICE_CAPS != 0 {
+	if caps.DeviceCaps|v4l2.V4L2_CAP_DEVICE_CAPS != 0 {
 		if caps.DeviceCaps&v4l2.V4L2_CAP_VIDEO_M2M == 0 {
 			log.Fatalf("Device %s does not support mem-to-mem (%#x)\n",
 				*video_node, caps.DeviceCaps)
@@ -97,6 +98,7 @@ func main() {
 	pixfmt.Field = v4l2.V4L2_FIELD_ANY
 	pixfmt.BytesPerLine = 0
 	format.Fmt = &pixfmt
+	fmt.Println(pixfmt)
 	err = v4l2.IoctlSetFmt(video_fd, &format)
 	if err != nil {
 		log.Fatal("Failed to set format")
@@ -252,12 +254,12 @@ func main() {
 		*out = def_outfile
 	}
 
-	out_file, err = os.OpenFile(*out, os.O_RDONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	out_file, err = os.OpenFile(*out, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		log.Fatal("Failed to open output file")
 	}
 	fmt.Println("Generating output file...")
-	out_file.Write(data_dst_buf)
+	out_file.Write(data_dst_buf[:capture_buffer_sz])
 	out_file.Close()
 	fmt.Printf("Output file: %s, size: %v\n", *out, capture_buffer_sz)
 
