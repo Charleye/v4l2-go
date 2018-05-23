@@ -44,6 +44,7 @@ func main() {
 		}
 		fmt.Println("Description: ", vf.Description)
 		fmt.Printf("PixelFormat: %#x\n", vf.PixelFormat)
+		fmt.Printf("FourCC: %s\n", v4l2.GetNameByFourCC(vf.PixelFormat))
 		fmt.Println("Flags: ", vf.Flags)
 	}
 	fmt.Println("")
