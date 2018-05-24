@@ -582,6 +582,21 @@ type V4L2_Timecode struct {
 	UserBits [4]uint8
 }
 
+type V4L2_Plane struct {
+	BytesUsed  uint32
+	Length     uint32
+	Union      []byte
+	DataOffset uint32
+}
+
+func (v *V4L2_Plane) get(ptr unsafe.Pointer) {
+	p := (*C.struct_v4l2_plane)(ptr)
+	v.BytesUsed = uint32(p.bytesused)
+	v.Length = uint32(p.length)
+	v.Union = C.GoBytes(unsafe.Pointer(&p.m), __SIZEOF_POINTER__)
+	v.DataOffset = uint32(p.data_offset)
+}
+
 func (t *V4L2_Timecode) get(ptr unsafe.Pointer) {
 	p := (*C.struct_v4l2_timecode)(ptr)
 
@@ -612,11 +627,6 @@ func (b *V4L2_Buffer) set(ptr unsafe.Pointer) {
 	p.flags = C.__u32(b.Flags)
 	p.field = C.__u32(b.Field)
 	p.memory = C.__u32(b.Memory)
-
-	if cap(b.M) == __SIZEOF_POINTER__ {
-		data := (*[__SIZEOF_POINTER__]byte)(C.CBytes(b.M))
-		p.m = *data
-	}
 	p.length = C.__u32(b.Length)
 }
 
@@ -644,11 +654,29 @@ func (b *V4L2_Buffer) get(ptr unsafe.Pointer) {
 
 func IoctlQueryBuf(fd int, argp *V4L2_Buffer) error {
 	var vb C.struct_v4l2_buffer
+	var planes [VIDEO_MAX_PLANES]C.struct_v4l2_plane
+
+	if argp.Type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ||
+		argp.Type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE {
+		b := UintptrToBytes(uintptr(unsafe.Pointer(&planes[0])))
+		for i := 0; i < __SIZEOF_POINTER__; i++ {
+			vb.m[i] = b[i]
+		}
+	}
 	p := unsafe.Pointer(&vb)
 	argp.set(p)
 	err := ioctl(fd, VIDIOC_QUERYBUF, p)
 	if err != nil {
 		return err
+	}
+
+	if argp.Type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ||
+		argp.Type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE {
+		tmp := unsafe.Pointer(BytesToUintptr(argp.M))
+		p := (*[VIDEO_MAX_PLANES]V4L2_Plane)(tmp)
+		for i := 0; i < int(vb.length); i++ {
+			(*p)[i].get(unsafe.Pointer(&planes[i]))
+		}
 	}
 	argp.get(p)
 	return nil
