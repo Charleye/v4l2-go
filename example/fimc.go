@@ -18,10 +18,15 @@ var fourcc = flag.String("r", "", "pixel format")
 
 var data_input_file []byte
 var input_file_sz int64
-var num_planes int
+var num_src_planes int
 var num_src_bufs uint32
+var src_frame_size uint32
 var data_src_buf [][][]byte
+
+var num_dst_planes int
 var num_dst_bufs uint32
+var data_dst_buf [][][]byte
+var dst_frame_size uint32
 
 func InitInputFile() int {
 	if *in == "" {
@@ -96,14 +101,13 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to set input format")
 	}
-	num_planes = int(pixmp.NumPlanes)
-	var frame_size uint32
-	for i := 0; i < num_planes; i++ {
-		frame_size += pixmp.PlaneFmt[i].SizeImage
+	num_src_planes = int(pixmp.NumPlanes)
+	for i := 0; i < num_src_planes; i++ {
+		src_frame_size += pixmp.PlaneFmt[i].SizeImage
 		fmt.Printf("plane[%d]: bytesperline: %d, sizeimage: %d\n",
 			i, pixmp.PlaneFmt[i].BytesPerLine, pixmp.PlaneFmt[i].SizeImage)
 	}
-	fmt.Printf("SRC frame_size: %v\n", frame_size)
+	fmt.Printf("SRC frame_size: %v\n", src_frame_size)
 
 	err = v4l2.IoctlGetFmt(video_fd, &format)
 	if err != nil {
@@ -135,7 +139,7 @@ func main() {
 
 		buf.Type = v4l2.V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
 		buf.M = v4l2.PointerToBytes(&planes[0])
-		buf.Length = uint32(num_planes)
+		buf.Length = uint32(num_src_planes)
 		buf.Memory = v4l2.V4L2_MEMORY_MMAP
 		buf.Index = uint32(index)
 
@@ -144,8 +148,8 @@ func main() {
 			log.Fatal(err)
 		}
 
-		data_src_planes := make([][]byte, 0, num_planes)
-		for i := 0; i < num_planes; i++ {
+		data_src_planes := make([][]byte, 0, num_src_planes)
+		for i := 0; i < num_src_planes; i++ {
 			var offset uint32
 			v4l2.GetValueFromUnion(planes[i].Union, &offset)
 			fmt.Printf("QUERYBUF: plane [%d]: Length: %v, bytesused: %v, offset: %v\n",
@@ -168,5 +172,37 @@ func main() {
 			}
 		}
 	}()
+
+	/* copy file data into the buffer */
+	copy(data_src_buf[0][0], data_input_file)
+
+	/* set output format */
+	format.Type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
+	pixmp = v4l2.V4L2_Pix_Format_Mplane{}
+	pixmp.Width = uint32(*width)
+	pixmp.Height = uint32(*height)
+	pixmp.Field = v4l2.V4L2_FIELD_ANY
+	pixmp.PlaneFmt[0].BytesPerLine = uint32(*width)
+	format.Fmt = &pixmp
+	err = v4l2.IoctlSetFmt(video_fd, &format)
+	if err != nil {
+		log.Fatal("Failed to set output format")
+	}
+	num_dst_planes = int(pixmp.NumPlanes)
+	for i := 0; i < num_dst_planes; i++ {
+		dst_frame_size += pixmp.PlaneFmt[i].SizeImage
+		fmt.Printf("plane[%d]: bytesperline: %v, sizeimage: %v\n",
+			i, pixmp.PlaneFmt[i].BytesPerLine, pixmp.PlaneFmt[i].SizeImage)
+	}
+	fmt.Printf("out_width: %v, out_height: %v\n", pixmp.Width, pixmp.Height)
+	fmt.Printf("DST framesize: %v\n", dst_frame_size)
+
+	/* request output buffers */
+	reqbuf.Type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
+	reqbuf.Count = 1
+	err = v4l2.IoctlRequestBuffers(video_fd, &reqbuf)
+	if err != nil {
+		log.Fatal("Failed to request output buffer")
+	}
 
 }
