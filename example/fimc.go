@@ -204,5 +204,54 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to request output buffer")
 	}
+	if reqbuf.Count < 1 {
+		log.Fatal("request output buffer: Out of memory")
+	}
+	num_dst_bufs = reqbuf.Count
+
+	data_dst_buf = make([][][]byte, 0, num_dst_bufs)
+	for index := 0; index < int(num_dst_bufs); index++ {
+		/* get buffer parameters */
+		var buf v4l2.V4L2_Buffer
+		var planes [v4l2.VIDEO_MAX_PLANES]v4l2.V4L2_Plane
+
+		buf.Type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
+		buf.M = v4l2.PointerToBytes(&planes[0])
+		buf.Length = uint32(num_dst_planes)
+		buf.Memory = v4l2.V4L2_MEMORY_MMAP
+		buf.Index = uint32(index)
+
+		err := v4l2.IoctlQueryBuf(video_fd, &buf)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		data_dst_planes := make([][]byte, 0, num_dst_planes)
+		for i := 0; i < num_dst_planes; i++ {
+			var offset uint32
+			v4l2.GetValueFromUnion(planes[i].Union, &offset)
+			fmt.Printf("QUERYBUF: plane [%d]: Length: %v, bytesused: %v, offset: %v\n",
+				i, planes[i].Length, planes[i].BytesUsed, offset)
+
+			/* mmap output buffer */
+			buf, err := syscall.Mmap(video_fd, int64(offset), int(planes[i].Length),
+				syscall.PROT_READ|syscall.PROT_WRITE, syscall.MAP_SHARED)
+			if err != nil {
+				log.Fatalf("mmap error: %v\n", err)
+			}
+			data_dst_planes = append(data_dst_planes, buf)
+		}
+		data_dst_buf = append(data_dst_buf, data_dst_planes)
+	}
+	defer func() {
+		for _, v := range data_dst_buf {
+			for _, d := range v {
+				syscall.Munmap(d)
+			}
+		}
+	}()
+}
+
+func process() {
 
 }
