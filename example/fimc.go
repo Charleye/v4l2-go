@@ -253,7 +253,7 @@ func main() {
 
 	/* process frames */
 	process(video_fd)
-
+	defer streamoff(video_fd)
 }
 
 func process(video_fd int) {
@@ -266,19 +266,15 @@ func process(video_fd int) {
 	src_buf.Index = 0
 	src_buf.M = v4l2.PointerToBytes(&src_planes[0])
 	src_buf.Length = uint32(num_src_planes)
-	fmt.Printf("%p\n", &src_planes[0])
-	fmt.Println(src_buf)
 
 	dst_buf.Type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
 	dst_buf.Memory = v4l2.V4L2_MEMORY_MMAP
 	dst_buf.Index = 0
 	dst_buf.M = v4l2.PointerToBytes(&dst_planes[0])
 	dst_buf.Length = uint32(num_dst_planes)
-	fmt.Printf("%p\n", &dst_planes[0])
-	fmt.Println(dst_buf)
 
 	var num_frames int
-	for ; num_frames < 1; num_frames++ {
+	for ; num_frames < 2; num_frames++ {
 		err := v4l2.IoctlQBuf(video_fd, &src_buf)
 		if err != nil {
 			log.Fatalf("Failed to enqueue input buffer: %v", err)
@@ -287,5 +283,50 @@ func process(video_fd int) {
 		if err != nil {
 			log.Fatalf("Failed to enqueue output buffer: %v", err)
 		}
+
+		if num_frames == 0 {
+			Type := v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
+			err := v4l2.IoctlStreamOn(video_fd, &Type)
+			if err != nil {
+				log.Fatalf("Failed to stream on capture interface: %v", err)
+			}
+			Type = v4l2.V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
+			err = v4l2.IoctlStreamOn(video_fd, &Type)
+			if err != nil {
+				log.Fatalf("Failed to stream on output interface: %v", err)
+			}
+		}
+
+		/* dequeue buffer */
+		var read_fds syscall.FdSet
+		var write_fds syscall.FdSet
+		read_fds.Bits[video_fd/64] = 1 << uint32(video_fd%64)
+		write_fds.Bits[video_fd/64] = 1 << uint32(video_fd%64)
+		r, err := syscall.Select(video_fd+1, &read_fds, &write_fds, nil, nil)
+		if r < 0 {
+			log.Fatalf("select errors: %v\n", err)
+		}
+
+		err = v4l2.IoctlDQBuf(video_fd, &dst_buf)
+		if err != nil {
+			log.Fatalf("Failed to dequeue capture interface buffer: %v", err)
+		}
+		err = v4l2.IoctlDQBuf(video_fd, &src_buf)
+		if err != nil {
+			log.Fatalf("Failed to dequeue output interface buffer: %v", err)
+		}
+	}
+}
+
+func streamoff(video_fd int) {
+	Type := v4l2.V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
+	err := v4l2.IoctlStreamOff(video_fd, &Type)
+	if err != nil {
+		log.Fatalf("Failed to stream off output interface: %v", err)
+	}
+	Type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
+	err = v4l2.IoctlStreamOff(video_fd, &Type)
+	if err != nil {
+		log.Fatalf("Failed to stream off capture interface: %v", err)
 	}
 }
