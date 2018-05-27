@@ -684,11 +684,29 @@ func IoctlQueryBuf(fd int, argp *V4L2_Buffer) error {
 
 func IoctlQBuf(fd int, argp *V4L2_Buffer) error {
 	var vb C.struct_v4l2_buffer
+	var planes [VIDEO_MAX_PLANES]C.struct_v4l2_plane
+
+	if argp.Type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ||
+		argp.Type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE {
+		b := UintptrToBytes(uintptr(unsafe.Pointer(&planes[0])))
+		for i := 0; i < __SIZEOF_POINTER__; i++ {
+			vb.m[i] = b[i]
+		}
+	}
 	p := unsafe.Pointer(&vb)
 	argp.set(p)
 	err := ioctl(fd, VIDIOC_QBUF, p)
 	if err != nil {
 		return err
+	}
+
+	if argp.Type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ||
+		argp.Type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE {
+		tmp := unsafe.Pointer(BytesToUintptr(argp.M))
+		p := (*[VIDEO_MAX_PLANES]V4L2_Plane)(tmp)
+		for i := 0; i < int(vb.length); i++ {
+			(*p)[i].get(unsafe.Pointer(&planes[i]))
+		}
 	}
 	argp.get(p)
 	return nil
@@ -696,11 +714,29 @@ func IoctlQBuf(fd int, argp *V4L2_Buffer) error {
 
 func IoctlDQBuf(fd int, argp *V4L2_Buffer) error {
 	var vb C.struct_v4l2_buffer
+	var planes [VIDEO_MAX_PLANES]C.struct_v4l2_plane
+
+	if argp.Type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ||
+		argp.Type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE {
+		b := UintptrToBytes(uintptr(unsafe.Pointer(&planes[0])))
+		for i := 0; i < __SIZEOF_POINTER__; i++ {
+			vb.m[i] = b[i]
+		}
+	}
 	p := unsafe.Pointer(&vb)
 	argp.set(p)
 	err := ioctl(fd, VIDIOC_DQBUF, p)
 	if err != nil {
 		return err
+	}
+
+	if argp.Type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE ||
+		argp.Type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE {
+		tmp := unsafe.Pointer(BytesToUintptr(argp.M))
+		p := (*[VIDEO_MAX_PLANES]V4L2_Plane)(tmp)
+		for i := 0; i < int(vb.length); i++ {
+			(*p)[i].get(unsafe.Pointer(&planes[i]))
+		}
 	}
 	argp.get(p)
 	return nil

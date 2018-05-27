@@ -250,8 +250,42 @@ func main() {
 			}
 		}
 	}()
+
+	/* process frames */
+	process(video_fd)
+
 }
 
-func process() {
+func process(video_fd int) {
+	var src_planes [v4l2.VIDEO_MAX_PLANES]v4l2.V4L2_Plane
+	var dst_planes [v4l2.VIDEO_MAX_PLANES]v4l2.V4L2_Plane
+	var src_buf, dst_buf v4l2.V4L2_Buffer
 
+	src_buf.Type = v4l2.V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
+	src_buf.Memory = v4l2.V4L2_MEMORY_MMAP
+	src_buf.Index = 0
+	src_buf.M = v4l2.PointerToBytes(&src_planes[0])
+	src_buf.Length = uint32(num_src_planes)
+	fmt.Printf("%p\n", &src_planes[0])
+	fmt.Println(src_buf)
+
+	dst_buf.Type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
+	dst_buf.Memory = v4l2.V4L2_MEMORY_MMAP
+	dst_buf.Index = 0
+	dst_buf.M = v4l2.PointerToBytes(&dst_planes[0])
+	dst_buf.Length = uint32(num_dst_planes)
+	fmt.Printf("%p\n", &dst_planes[0])
+	fmt.Println(dst_buf)
+
+	var num_frames int
+	for ; num_frames < 1; num_frames++ {
+		err := v4l2.IoctlQBuf(video_fd, &src_buf)
+		if err != nil {
+			log.Fatalf("Failed to enqueue input buffer: %v", err)
+		}
+		err = v4l2.IoctlQBuf(video_fd, &dst_buf)
+		if err != nil {
+			log.Fatalf("Failed to enqueue output buffer: %v", err)
+		}
+	}
 }
