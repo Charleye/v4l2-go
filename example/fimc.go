@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"syscall"
 
 	v4l2 "github.com/Charleye/v4l2-go"
@@ -183,11 +184,13 @@ func main() {
 	pixmp.Height = uint32(*height)
 	pixmp.Field = v4l2.V4L2_FIELD_ANY
 	pixmp.PlaneFmt[0].BytesPerLine = uint32(*width)
+	pixmp.PixelFormat = v4l2.GetFourCCByName("UYVY")
 	format.Fmt = &pixmp
 	err = v4l2.IoctlSetFmt(video_fd, &format)
 	if err != nil {
 		log.Fatal("Failed to set output format")
 	}
+	fmt.Println("output format: ", pixmp)
 	num_dst_planes = int(pixmp.NumPlanes)
 	for i := 0; i < num_dst_planes; i++ {
 		dst_frame_size += pixmp.PlaneFmt[i].SizeImage
@@ -274,7 +277,7 @@ func process(video_fd int) {
 	dst_buf.Length = uint32(num_dst_planes)
 
 	var num_frames int
-	for ; num_frames < 2; num_frames++ {
+	for ; num_frames < 1; num_frames++ {
 		err := v4l2.IoctlQBuf(video_fd, &src_buf)
 		if err != nil {
 			log.Fatalf("Failed to enqueue input buffer: %v", err)
@@ -316,6 +319,15 @@ func process(video_fd int) {
 			log.Fatalf("Failed to dequeue output interface buffer: %v", err)
 		}
 	}
+	out_file, err := os.OpenFile("in422_uyvy_800_600.raw", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		log.Fatal("Failed to open output file")
+	}
+	fmt.Println("Generating output file...")
+	n, _ := out_file.Write(data_dst_buf[0][0][:dst_planes[0].BytesUsed])
+	fmt.Println(n)
+	out_file.Close()
+	fmt.Printf("Output file: %s, size: %v\n", "test.rgb", dst_planes[0].BytesUsed)
 }
 
 func streamoff(video_fd int) {
