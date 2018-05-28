@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"unsafe"
 )
 
 // get value from v4l2_buffer union field
@@ -35,4 +36,27 @@ func GetValueFromUnion(union []byte, value interface{}) {
 	return
 BinaryError:
 	fmt.Printf("Read for package binary failed\n")
+}
+
+func UintptrToBytes(n uintptr) []byte {
+	tmp := uint64(n)
+	buffer := bytes.NewBuffer([]byte{})
+	binary.Write(buffer, binary.LittleEndian, tmp)
+	return buffer.Bytes()
+}
+
+func BytesToUintptr(b []byte) uintptr {
+	buffer := bytes.NewBuffer(b)
+	var tmp uint64
+	binary.Read(buffer, binary.LittleEndian, &tmp)
+	return uintptr(tmp)
+}
+
+func PointerToBytes(p interface{}) []byte {
+	switch x := p.(type) {
+	case *V4L2_Plane:
+		tmp := unsafe.Pointer(x)
+		return UintptrToBytes(uintptr(tmp))
+	}
+	return nil
 }
