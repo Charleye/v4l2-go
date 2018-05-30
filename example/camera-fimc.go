@@ -77,7 +77,10 @@ func process(cam *v4l2.Camera, video_fd int) {
 	copy(data_src_buf[0][0], cam.Capture())
 
 	var num_frames int
-	for ; num_frames < 1; num_frames++ {
+	for ; num_frames < 3; num_frames++ {
+		if num_frames != 0 {
+			copy(data_src_buf[0][0], cam.Capture())
+		}
 		err := v4l2.IoctlQBuf(video_fd, &src_buf)
 		if err != nil {
 			log.Fatalf("Failed to enqueue input buffer: %v", err)
@@ -101,8 +104,7 @@ func process(cam *v4l2.Camera, video_fd int) {
 		}
 
 		/* dequeue buffer */
-		var read_fds syscall.FdSet
-		var write_fds syscall.FdSet
+		var read_fds, write_fds syscall.FdSet
 		read_fds.Bits[video_fd/64] = 1 << uint32(video_fd%64)
 		write_fds.Bits[video_fd/64] = 1 << uint32(video_fd%64)
 		r, err := syscall.Select(video_fd+1, &read_fds, &write_fds, nil, nil)
@@ -118,6 +120,7 @@ func process(cam *v4l2.Camera, video_fd int) {
 		if err != nil {
 			log.Fatalf("Failed to dequeue output interface buffer: %v", err)
 		}
+		fmt.Printf("num_frames: %d\n", num_frames)
 	}
 }
 
