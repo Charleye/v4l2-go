@@ -30,6 +30,7 @@ func main() {
 	fmt.Printf("Capabilities: %#x\n", vc.Capabilities)
 	fmt.Println("")
 
+	fmt.Println("Enumerate all formats for input port")
 	for i := 0; ; i++ {
 		vf := v4l2.V4L2_Fmtdesc{
 			Index: uint32(i),
@@ -44,11 +45,33 @@ func main() {
 		}
 		fmt.Println("Description: ", vf.Description)
 		fmt.Printf("PixelFormat: %#x\n", vf.PixelFormat)
+		fmt.Printf("FourCC: %s\n", v4l2.GetNameByFourCC(vf.PixelFormat))
 		fmt.Println("Flags: ", vf.Flags)
 	}
 	fmt.Println("")
 
-	// first VIDIOC_G_FMT
+	fmt.Println("Enumerate all formats for output port")
+	for i := 0; ; i++ {
+		vf := v4l2.V4L2_Fmtdesc{
+			Index: uint32(i),
+			Type:  v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
+		}
+		err := v4l2.IoctlEnumFmt(fd, &vf)
+		if err != nil {
+			if err == syscall.EINVAL {
+				break
+			}
+			log.Fatal(err)
+		}
+		fmt.Println("Description: ", vf.Description)
+		fmt.Printf("PixelFormat: %#x\n", vf.PixelFormat)
+		fmt.Printf("FourCC: %s\n", v4l2.GetNameByFourCC(vf.PixelFormat))
+		fmt.Println("Flags: ", vf.Flags)
+	}
+	fmt.Println("")
+
+	/* first VIDIOC_G_FMT */
+	fmt.Println("Get format for input port")
 	var vfmt v4l2.V4L2_Format
 	var pfm v4l2.V4L2_Pix_Format_Mplane
 	vfmt.Type = v4l2.V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
@@ -58,7 +81,6 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println("get mplane format Before VIDIOC_S_FMT")
-	fmt.Println(pfm)
 	fmt.Println("Width: ", pfm.Width)
 	fmt.Println("Height: ", pfm.Height)
 	fmt.Printf("PixelFormat: %#x\n", pfm.PixelFormat)
@@ -98,7 +120,6 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println("get mplane format After VIDIOC_S_FMT")
-	fmt.Println(pfm)
 	fmt.Println("Width: ", pfm.Width)
 	fmt.Println("Height: ", pfm.Height)
 	fmt.Printf("PixelFormat: %#x\n", pfm.PixelFormat)
