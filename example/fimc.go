@@ -319,7 +319,7 @@ func process(video_fd int) {
 			log.Fatalf("Failed to dequeue output interface buffer: %v", err)
 		}
 	}
-	out_file, err := os.OpenFile("in422_uyvy_800_600.raw", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	out_file, err := os.OpenFile("out422_uyvy_800_600.raw", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		log.Fatal("Failed to open output file")
 	}
@@ -327,7 +327,7 @@ func process(video_fd int) {
 	n, _ := out_file.Write(data_dst_buf[0][0][:dst_planes[0].BytesUsed])
 	fmt.Println(n)
 	out_file.Close()
-	fmt.Printf("Output file: %s, size: %v\n", "test.rgb", dst_planes[0].BytesUsed)
+	fmt.Printf("Output file: %s, size: %v\n", "out422_uyvy_800_600.raw", dst_planes[0].BytesUsed)
 }
 
 func streamoff(video_fd int) {

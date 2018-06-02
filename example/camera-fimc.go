@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"strconv"
 	"syscall"
 
 	"github.com/Charleye/v4l2-go"
@@ -14,6 +16,7 @@ var fimc_node = flag.String("v", "", "FIMC device node")
 var width = flag.Uint("w", 0, "width  in pixel")
 var height = flag.Uint("h", 0, "height in pixel")
 var fourcc = flag.String("r", "YUYV", "pixel format for input interface")
+var duration = flag.Int("t", 1, "number of frames")
 
 /* global varibales */
 var num_src_planes, num_dst_planes int
@@ -74,13 +77,15 @@ func process(cam *v4l2.Camera, video_fd int) {
 	dst_buf.M = v4l2.PointerToBytes(&dst_planes[0])
 	dst_buf.Length = uint32(num_dst_planes)
 
+	/* copy first frame into src buffer */
 	copy(data_src_buf[0][0], cam.Capture())
 
 	var num_frames int
-	for ; num_frames < 3; num_frames++ {
+	for ; num_frames < *duration; num_frames++ {
 		if num_frames != 0 {
 			copy(data_src_buf[0][0], cam.Capture())
 		}
+
 		err := v4l2.IoctlQBuf(video_fd, &src_buf)
 		if err != nil {
 			log.Fatalf("Failed to enqueue input buffer: %v", err)
@@ -116,6 +121,12 @@ func process(cam *v4l2.Camera, video_fd int) {
 		if err != nil {
 			log.Fatalf("Failed to dequeue capture interface buffer: %v", err)
 		}
+
+		/* write data into file */
+		file, _ := os.OpenFile("test_UYVY"+strconv.Itoa(num_frames)+"_800_600.raw", os.O_RDWR|os.O_CREATE, 0644)
+		n, _ := file.Write(data_dst_buf[0][0][:dst_planes[0].BytesUsed])
+		fmt.Printf("Write: %v\n", n)
+
 		err = v4l2.IoctlDQBuf(video_fd, &src_buf)
 		if err != nil {
 			log.Fatalf("Failed to dequeue output interface buffer: %v", err)
@@ -200,7 +211,6 @@ func SetOutputFormat(video_fd int) {
 	if err != nil {
 		log.Fatal("Failed to set output format")
 	}
-	fmt.Println("output format: ", pixmp)
 	num_dst_planes = int(pixmp.NumPlanes)
 	for i := 0; i < num_dst_planes; i++ {
 		dst_frame_size += pixmp.PlaneFmt[i].SizeImage
