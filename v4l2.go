@@ -106,6 +106,9 @@ const (
 	/* compressed formats */
 	V4L2_PIX_FMT_MJPEG = C.V4L2_PIX_FMT_MJPEG
 	V4L2_PIX_FMT_JPEG  = C.V4L2_PIX_FMT_JPEG
+	V4L2_PIX_FMT_H264  = C.V4L2_PIX_FMT_H264
+	V4L2_PIX_FMT_MPEG4 = C.V4L2_PIX_FMT_MPEG4
+	V4L2_PIX_FMT_VP8   = C.V4L2_PIX_FMT_VP8
 )
 
 const (
@@ -199,6 +202,12 @@ func GetFourCCByName(name string) uint32 {
 		return V4L2_PIX_FMT_MJPEG
 	case "JPEG", "JFIF JPEG":
 		return V4L2_PIX_FMT_JPEG
+	case "H264":
+		return V4L2_PIX_FMT_H264
+	case "MPG4", "MPEG4":
+		return V4L2_PIX_FMT_MPEG4
+	case "VP8":
+		return V4L2_PIX_FMT_VP8
 
 	default:
 		log.Fatal("Unexpected FourCC name")
