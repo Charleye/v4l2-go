@@ -83,7 +83,6 @@ func SetInputFormat(video_fd int) {
 	if err != nil {
 		log.Fatal("Failed to set input format")
 	}
-	fmt.Println(pixmp)
 	num_src_planes = int(pixmp.NumPlanes)
 	for i := 0; i < num_src_planes; i++ {
 		src_frame_size += pixmp.PlaneFmt[i].SizeImage
@@ -106,25 +105,16 @@ func SetOutputFormat(video_fd int) {
 	var format v4l2.V4L2_Format
 	var pixmp v4l2.V4L2_Pix_Format_Mplane
 	format.Type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
-	pixmp = v4l2.V4L2_Pix_Format_Mplane{}
-	pixmp.Width = uint32(*width)
-	pixmp.Height = uint32(*height)
-	pixmp.Field = v4l2.V4L2_FIELD_ANY
-	pixmp.PlaneFmt[0].BytesPerLine = uint32(*width)
-	pixmp.PixelFormat = v4l2.GetFourCCByName("UYVY")
+	pixmp.PixelFormat = v4l2.GetFourCCByName("H264")
+	pixmp.PlaneFmt[0].SizeImage = 2 * 1024 * 1024
+	pixmp.NumPlanes = 1
 	format.Fmt = &pixmp
 	err := v4l2.IoctlSetFmt(video_fd, &format)
 	if err != nil {
 		log.Fatal("Failed to set output format")
 	}
 	num_dst_planes = int(pixmp.NumPlanes)
-	for i := 0; i < num_dst_planes; i++ {
-		dst_frame_size += pixmp.PlaneFmt[i].SizeImage
-		fmt.Printf("plane[%d]: bytesperline: %v, sizeimage: %v\n",
-			i, pixmp.PlaneFmt[i].BytesPerLine, pixmp.PlaneFmt[i].SizeImage)
-	}
 	fmt.Printf("out_width: %v, out_height: %v\n", pixmp.Width, pixmp.Height)
-	fmt.Printf("DST framesize: %v\n", dst_frame_size)
 }
 
 func AllocInputBuffers(video_fd int) {
@@ -183,10 +173,10 @@ func AllocOutputBuffers(video_fd int) {
 	var reqbuf v4l2.V4L2_Requestbuffers
 	reqbuf.Type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
 	reqbuf.Memory = v4l2.V4L2_MEMORY_MMAP
-	reqbuf.Count = 1
+	reqbuf.Count = 4
 	err := v4l2.IoctlRequestBuffers(video_fd, &reqbuf)
 	if err != nil {
-		log.Fatal("Failed to request output buffer")
+		log.Fatalf("Failed to request output buffer: %v", err)
 	}
 	if reqbuf.Count < 1 {
 		log.Fatal("request output buffer: Out of memory")
@@ -201,7 +191,7 @@ func AllocOutputBuffers(video_fd int) {
 
 		buf.Type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
 		buf.M = v4l2.PointerToBytes(&planes[0])
-		buf.Length = uint32(num_dst_planes)
+		buf.Length = v4l2.VIDEO_MAX_PLANES
 		buf.Memory = v4l2.V4L2_MEMORY_MMAP
 		buf.Index = uint32(index)
 
@@ -209,7 +199,6 @@ func AllocOutputBuffers(video_fd int) {
 		if err != nil {
 			log.Fatal(err)
 		}
-
 		data_dst_planes := make([][]byte, 0, num_dst_planes)
 		for i := 0; i < num_dst_planes; i++ {
 			var offset uint32
@@ -217,7 +206,7 @@ func AllocOutputBuffers(video_fd int) {
 			fmt.Printf("QUERYBUF: plane [%d]: Length: %v, bytesused: %v, offset: %v\n",
 				i, planes[i].Length, planes[i].BytesUsed, offset)
 
-			/* mmap output buffer */
+			// mmap output buffer
 			buf, err := syscall.Mmap(video_fd, int64(offset), int(planes[i].Length),
 				syscall.PROT_READ|syscall.PROT_WRITE, syscall.MAP_SHARED)
 			if err != nil {
