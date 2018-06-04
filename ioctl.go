@@ -138,7 +138,7 @@ func (f *V4L2_Pix_Format_Mplane) set(ptr unsafe.Pointer) {
 	p.field = C.__u32(f.Field)
 	p.colorspace = C.__u32(f.ColorSpace)
 	p.num_planes = C.__u8(f.NumPlanes)
-	for i := 0; i < int(f.NumPlanes); i++ {
+	for i := 0; i < VIDEO_MAX_PLANES; i++ {
 		f.PlaneFmt[i].set(unsafe.Pointer(&p.plane_fmt[i]))
 	}
 	p.flags = C.__u8(f.Flags)
