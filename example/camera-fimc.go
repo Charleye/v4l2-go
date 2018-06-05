@@ -16,7 +16,9 @@ var fimc_node = flag.String("v", "", "FIMC device node")
 var width = flag.Uint("w", 0, "width  in pixel")
 var height = flag.Uint("h", 0, "height in pixel")
 var fourcc = flag.String("r", "YUYV", "pixel format for input interface")
+var out_fourcc = flag.String("o", "UYVY", "pixel format for output interface")
 var duration = flag.Int("t", 1, "number of frames")
+var packet = flag.Bool("p", false, "packet many frames, then write into a file")
 
 /* global varibales */
 var num_src_planes, num_dst_planes int
@@ -81,6 +83,7 @@ func process(cam *v4l2.Camera, video_fd int) {
 	copy(data_src_buf[0][0], cam.Capture())
 
 	var num_frames int
+	var file *os.File
 	for ; num_frames < *duration; num_frames++ {
 		if num_frames != 0 {
 			copy(data_src_buf[0][0], cam.Capture())
@@ -123,16 +126,27 @@ func process(cam *v4l2.Camera, video_fd int) {
 		}
 
 		/* write data into file */
-		file, _ := os.OpenFile("test_UYVY"+strconv.Itoa(num_frames)+"_800_600.raw", os.O_RDWR|os.O_CREATE, 0644)
-		n, _ := file.Write(data_dst_buf[0][0][:dst_planes[0].BytesUsed])
-		fmt.Printf("Write: %v\n", n)
+		if !*packet {
+			file, _ = os.OpenFile("test_UYVY"+strconv.Itoa(num_frames)+"_800_600.raw", os.O_RDWR|os.O_CREATE, 0644)
+			n, _ := file.Write(data_dst_buf[0][0][:dst_planes[0].BytesUsed])
+			fmt.Printf("Write: %v\n", n)
+		} else if file.Fd() == uintptr(1<<uint(strconv.IntSize)-1) {
+			file, _ = os.OpenFile("video_NM12_"+strconv.Itoa(*duration)+".raw", os.O_RDWR|os.O_CREATE, 0644)
+		}
 
+		if *packet {
+			for i := 0; i < num_dst_planes; i++ {
+				n, _ := file.Write(data_dst_buf[0][i][:dst_planes[i].BytesUsed])
+				fmt.Printf("plane[%d]: Write: %v\n", i, n)
+			}
+		}
 		err = v4l2.IoctlDQBuf(video_fd, &src_buf)
 		if err != nil {
 			log.Fatalf("Failed to dequeue output interface buffer: %v", err)
 		}
 		fmt.Printf("num_frames: %d\n", num_frames)
 	}
+	file.Close()
 }
 
 func InitCSCVideoNode() int {
@@ -205,7 +219,7 @@ func SetOutputFormat(video_fd int) {
 	pixmp.Height = uint32(*height)
 	pixmp.Field = v4l2.V4L2_FIELD_ANY
 	pixmp.PlaneFmt[0].BytesPerLine = uint32(*width)
-	pixmp.PixelFormat = v4l2.GetFourCCByName("UYVY")
+	pixmp.PixelFormat = v4l2.GetFourCCByName(*out_fourcc)
 	format.Fmt = &pixmp
 	err := v4l2.IoctlSetFmt(video_fd, &format)
 	if err != nil {
