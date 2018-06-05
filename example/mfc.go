@@ -9,12 +9,15 @@ import (
 	v4l2 "github.com/Charleye/v4l2-go"
 )
 
+var input_file = flag.String("f", "", "input file")
 var mfc_node = flag.String("v", "", "MFC device node")
 var width = flag.Uint("w", 0, "width  in pixel")
 var height = flag.Uint("h", 0, "height in pixel")
 var fourcc = flag.String("r", "NM12", "pixel format for input interface")
 
 /* global varibales */
+var data_input_file []byte
+var input_file_size int64
 var num_src_planes, num_dst_planes int
 var data_src_buf, data_dst_buf [][][]byte
 var src_frame_size, dst_frame_size uint32
@@ -22,6 +25,9 @@ var num_src_bufs, num_dst_bufs uint32
 
 func main() {
 	flag.Parse()
+
+	file_fd := InitInputFile()
+	defer syscall.Close(file_fd)
 
 	video_fd := InitMFCVideoNode()
 	defer syscall.Close(video_fd)
@@ -33,6 +39,56 @@ func main() {
 	SetOutputFormat(video_fd)
 	AllocOutputBuffers(video_fd)
 	defer FreeOutputBuffers()
+}
+
+func InitInputFile() int {
+	if *input_file == "" {
+		log.Fatal("Failed to specify input file")
+	}
+
+	var st syscall.Stat_t
+	var fd int
+	fd, err := syscall.Open(*input_file, syscall.O_RDONLY, 0)
+	if err != nil {
+		log.Fatalf("Failed to open input file: %s", *input_file)
+	}
+	syscall.Fstat(fd, &st)
+	input_file_size = st.Size
+	fmt.Printf("input file size: %v\n", input_file_size)
+
+	data_input_file, err = syscall.Mmap(fd, 0, int(input_file_size),
+		syscall.PROT_READ, syscall.MAP_SHARED)
+
+	fmt.Println("len cap: ", len(data_input_file), cap(data_input_file))
+	return fd
+}
+
+func process(video_fd int) {
+	var src_planes [v4l2.VIDEO_MAX_PLANES]v4l2.V4L2_Plane
+	var dst_planes [v4l2.VIDEO_MAX_PLANES]v4l2.V4L2_Plane
+	var src_buf, dst_buf v4l2.V4L2_Buffer
+
+	src_buf.Type = v4l2.V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
+	src_buf.Memory = v4l2.V4L2_MEMORY_MMAP
+	src_buf.M = v4l2.PointerToBytes(&src_planes[0])
+	src_buf.Length = uint32(num_src_planes)
+
+	for i := 0; i < int(num_dst_bufs); i++ {
+		copy(data_src_buf[i][0], data_input_file)
+		copy(data_src_buf[i][1], data_input_file)
+		src_buf.Index = uint32(i)
+		err := v4l2.IoctlQBuf(video_fd, &src_buf)
+		if err != nil {
+			fmt.Printf("Failed to enqueue buffer %d/%d to %d\n", i, num_dst_bufs, video_fd)
+		}
+	}
+
+	dst_buf.Type = v4l2.V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
+	dst_buf.Memory = v4l2.V4L2_MEMORY_MMAP
+	dst_buf.Index = 0
+	dst_buf.M = v4l2.PointerToBytes(&dst_planes[0])
+	dst_buf.Length = uint32(num_dst_planes)
+
 }
 
 func InitMFCVideoNode() int {
@@ -74,15 +130,16 @@ func SetInputFormat(video_fd int) {
 	pixmp.Field = v4l2.V4L2_FIELD_ANY
 	pixmp.PixelFormat = v4l2.GetFourCCByName(*fourcc)
 	pixmp.NumPlanes = 2
-	pixmp.PlaneFmt[0].BytesPerLine = 800
-	pixmp.PlaneFmt[0].SizeImage = 480000
-	pixmp.PlaneFmt[1].BytesPerLine = 800
-	pixmp.PlaneFmt[1].SizeImage = 240000
+	pixmp.PlaneFmt[0].BytesPerLine = 1280
+	pixmp.PlaneFmt[0].SizeImage = 0xE1000
+	pixmp.PlaneFmt[1].BytesPerLine = 1280
+	pixmp.PlaneFmt[1].SizeImage = 0x70800
 	format.Fmt = &pixmp
 	err := v4l2.IoctlSetFmt(video_fd, &format)
 	if err != nil {
 		log.Fatal("Failed to set input format")
 	}
+	fmt.Println(planes)
 	num_src_planes = int(pixmp.NumPlanes)
 	for i := 0; i < num_src_planes; i++ {
 		src_frame_size += pixmp.PlaneFmt[i].SizeImage
@@ -120,7 +177,7 @@ func SetOutputFormat(video_fd int) {
 func AllocInputBuffers(video_fd int) {
 	/* request input buffer */
 	var reqbuf v4l2.V4L2_Requestbuffers
-	reqbuf.Count = 1
+	reqbuf.Count = 16
 	reqbuf.Type = v4l2.V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
 	reqbuf.Memory = v4l2.V4L2_MEMORY_MMAP
 	err := v4l2.IoctlRequestBuffers(video_fd, &reqbuf)
@@ -215,6 +272,13 @@ func AllocOutputBuffers(video_fd int) {
 			data_dst_planes = append(data_dst_planes, buf)
 		}
 		data_dst_buf = append(data_dst_buf, data_dst_planes)
+
+		err = v4l2.IoctlQBuf(video_fd, &buf)
+		if err != nil {
+			log.Fatalf("Failed to enqueue output buffer: %v", err)
+		} else {
+			fmt.Printf("Enqueued buffer %d/%d to %d\n", index, num_dst_bufs, video_fd)
+		}
 	}
 }
 
